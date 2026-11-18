@@ -1,17 +1,18 @@
-import { Component, OnInit, inject } from '@angular/core';
+import type { OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { IonContent, IonIcon } from '@ionic/angular';
-import { paw } from 'ionicons/icons';
+import { IonContent } from '@ionic/angular';
+
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-splash',
-  imports: [IonContent, IonIcon],
+  imports: [IonContent],
   template: `
     <ion-content [fullscreen]="true">
       <div class="splash">
-        <div class="logo"><ion-icon [icon]="paw"></ion-icon></div>
-        <h1>Pawnder</h1>
+        <img class="brand-logo" src="assets/icon/favicon.png" alt="PAWNDER" />
+        <h1>PAWNDER</h1>
         <p>Cada huella cuenta</p>
       </div>
     </ion-content>
@@ -30,25 +31,20 @@ import { AuthService } from '../../core/services/auth.service';
         text-align: center;
         gap: 6px;
       }
-      .logo {
+      .brand-logo {
         width: 120px;
         height: 120px;
-        border-radius: 36px;
-        background: var(--ion-color-primary);
-        color: var(--ion-color-primary-contrast);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 64px;
-        box-shadow: 0 10px 30px rgba(60, 200, 161, 0.45);
+        border-radius: 30px;
+        object-fit: contain;
         animation: pulse 1.6s ease-in-out infinite;
       }
       h1 {
         margin: 18px 0 0;
-        font-size: 2.2rem;
+        font-size: 2rem;
         font-weight: 800;
         color: #1b6b53;
-        letter-spacing: -0.5px;
+        letter-spacing: 0.16em;
+        text-shadow: 0 2px 0 rgba(255, 255, 255, 0.7);
       }
       p {
         margin: 0;
@@ -69,7 +65,6 @@ import { AuthService } from '../../core/services/auth.service';
 export class SplashPage implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
-  protected readonly paw = paw;
 
   async ngOnInit(): Promise<void> {
     // Espera a recuperar la sesión guardada y a que se vea la animación

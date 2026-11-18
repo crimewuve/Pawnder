@@ -1,6 +1,6 @@
-import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import type { OnDestroy, OnInit } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { Subscription, debounceTime } from 'rxjs';
 import {
   IonBackButton,
   IonButton,
@@ -25,22 +25,15 @@ import {
   IonTitle,
   IonToolbar,
 } from '@ionic/angular';
-import {
-  add,
-  alertCircle,
-  filterOutline,
-  mapOutline,
-  pawOutline,
-} from 'ionicons/icons';
+import { add, alertCircle, filterOutline, mapOutline, pawOutline } from 'ionicons/icons';
+import type { Subscription } from 'rxjs';
+import { debounceTime } from 'rxjs';
+
 import { AuthService } from '../../core/services/auth.service';
 import { ReportsService } from '../../core/services/reports.service';
 import { UiService } from '../../core/services/ui.service';
-import {
-  DEFAULT_FILTERS,
-  DogReport,
-  ReportFilters,
-  UrgencyLevel,
-} from '../../models/dog-report.model';
+import type { DogReport, ReportFilters, UrgencyLevel } from '../../models/dog-report.model';
+import { DEFAULT_FILTERS } from '../../models/dog-report.model';
 import { ReportCardComponent } from '../../shared/components/report-card/report-card.component';
 
 @Component({
@@ -76,7 +69,7 @@ import { ReportCardComponent } from '../../shared/components/report-card/report-
         <ion-buttons slot="start">
           <ion-back-button defaultHref="/menu" text="Menú"></ion-back-button>
         </ion-buttons>
-        <ion-title>📚 Biblioteca</ion-title>
+        <ion-title>🐾 Directorio Canino</ion-title>
         <ion-buttons slot="end">
           <ion-button (click)="goMap()">
             <ion-icon slot="icon-only" [icon]="mapOutline"></ion-icon>
@@ -213,9 +206,7 @@ import { ReportCardComponent } from '../../shared/components/report-card/report-
             <ion-button expand="block" fill="outline" style="flex: 1;" (click)="clearFilters()">
               Restablecer
             </ion-button>
-            <ion-button expand="block" style="flex: 1;" (click)="filterModalOpen.set(false)">
-              Aplicar
-            </ion-button>
+            <ion-button expand="block" style="flex: 1;" (click)="filterModalOpen.set(false)"> Aplicar </ion-button>
           </div>
         </ion-content>
       </ng-template>
@@ -317,7 +308,7 @@ export class HomePage implements OnInit, OnDestroy {
           r.title.toLowerCase().includes(q) ||
           r.breed.toLowerCase().includes(q) ||
           r.zone.toLowerCase().includes(q) ||
-          r.description.toLowerCase().includes(q)
+          r.description.toLowerCase().includes(q),
       );
     }
 

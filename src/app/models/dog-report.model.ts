@@ -1,13 +1,6 @@
 export type DogSize = 'pequeno' | 'mediano' | 'grande';
 export type UrgencyLevel = 'normal' | 'alta' | 'critica';
-export type UrgencyCategory =
-  | 'herido'
-  | 'enfermo'
-  | 'embarazada'
-  | 'cachorros'
-  | 'atrapado'
-  | 'clima_adverso'
-  | 'otro';
+export type UrgencyCategory = 'herido' | 'enfermo' | 'embarazada' | 'cachorros' | 'atrapado' | 'clima_adverso' | 'otro';
 export type ReportStatus = 'activo' | 'en_proceso' | 'resuelto';
 
 export interface DogReport {
@@ -36,10 +29,11 @@ export interface DogReport {
   report_status: ReportStatus;
   created_at: string;
   updated_at: string;
-  // Campos para privacidad y seguridad de mascotas
+  // Notas de UI/legacy: NO existen en public.dog_reports y nunca se envían a Supabase.
+  // La urgencia se deriva de urgency_level !== 'normal' y la privacidad se aplica
+  // difuminando las coordenadas antes de guardar el reporte.
   is_approximate_location?: boolean;
   is_emergency?: boolean;
-  custom_category?: string | null;
   // Relaciones que trae Supabase en las consultas con "select"
   profiles?: { display_name: string } | null;
   report_comments?: { count: number }[];
@@ -48,7 +42,14 @@ export interface DogReport {
 /** Datos que el formulario envía al crear un reporte (user_id lo pone el servicio) */
 export type NewDogReport = Omit<
   DogReport,
-  'id' | 'user_id' | 'created_at' | 'updated_at' | 'profiles' | 'report_comments'
+  | 'id'
+  | 'user_id'
+  | 'created_at'
+  | 'updated_at'
+  | 'profiles'
+  | 'report_comments'
+  | 'is_approximate_location'
+  | 'is_emergency'
 >;
 
 export interface ReportFilters {

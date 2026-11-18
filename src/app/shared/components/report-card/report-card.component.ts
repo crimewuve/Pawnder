@@ -8,15 +8,16 @@ import {
   shieldCheckmarkOutline,
   timeOutline,
 } from 'ionicons/icons';
+
+import { weatherSummary } from '../../../core/services/weather.service';
+import { formatDateTime } from '../../../core/utils/format';
+import type { DogReport } from '../../../models/dog-report.model';
 import {
-  DogReport,
   STATUS_OPTIONS,
   URGENCY_CATEGORY_OPTIONS,
   URGENCY_LEVEL_OPTIONS,
   labelOf,
 } from '../../../models/dog-report.model';
-import { formatDateTime } from '../../../core/utils/format';
-import { weatherSummary } from '../../../core/services/weather.service';
 import { WeatherIndicatorComponent } from '../weather-indicator/weather-indicator.component';
 
 @Component({
@@ -60,7 +61,7 @@ import { WeatherIndicatorComponent } from '../weather-indicator/weather-indicato
         </div>
       </div>
 
-      <!-- Card Body: Pokédex Stats & Metadata -->
+      <!-- Card Body: Pawnder Stats & Metadata -->
       <ion-card-content class="card-body">
         <div class="headline-row">
           <h2 class="title">{{ report().title }}</h2>
@@ -126,7 +127,10 @@ import { WeatherIndicatorComponent } from '../weather-indicator/weather-indicato
         box-shadow: var(--pw-shadow-soft);
         border: 1px solid rgba(229, 231, 235, 0.8);
         overflow: hidden;
-        transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s ease, border-color 0.22s ease;
+        transition:
+          transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+          box-shadow 0.22s ease,
+          border-color 0.22s ease;
       }
       .paw-card:hover {
         transform: translateY(-3px);
@@ -215,8 +219,13 @@ import { WeatherIndicatorComponent } from '../weather-indicator/weather-indicato
         animation: pulse-crit 1.6s infinite;
       }
       @keyframes pulse-crit {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.06); }
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.06);
+        }
       }
       .pill-pet {
         background: rgba(16, 185, 129, 0.92);
@@ -236,9 +245,15 @@ import { WeatherIndicatorComponent } from '../weather-indicator/weather-indicato
         letter-spacing: 0.05em;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
       }
-      .status-activo { background: #10b981; }
-      .status-en_proceso { background: #f59e0b; }
-      .status-resuelto { background: #6b7280; }
+      .status-activo {
+        background: #10b981;
+      }
+      .status-en_proceso {
+        background: #f59e0b;
+      }
+      .status-resuelto {
+        background: #6b7280;
+      }
 
       /* Card Content */
       .card-body {
@@ -383,22 +398,16 @@ export class ReportCardComponent {
     return name.charAt(0).toUpperCase();
   });
 
-  protected readonly urgencyLabel = computed(() =>
-    labelOf(URGENCY_LEVEL_OPTIONS, this.report().urgency_level)
-  );
+  protected readonly urgencyLabel = computed(() => labelOf(URGENCY_LEVEL_OPTIONS, this.report().urgency_level));
 
-  protected readonly statusLabel = computed(() =>
-    labelOf(STATUS_OPTIONS, this.report().report_status)
-  );
+  protected readonly statusLabel = computed(() => labelOf(STATUS_OPTIONS, this.report().report_status));
 
   protected readonly sizeLabel = computed(() => {
     const s = this.report().size;
     return s === 'pequeno' ? 'Pequeño' : s === 'mediano' ? 'Mediano' : 'Grande';
   });
 
-  protected readonly categoryLabel = computed(() =>
-    labelOf(URGENCY_CATEGORY_OPTIONS, this.report().urgency_category)
-  );
+  protected readonly categoryLabel = computed(() => labelOf(URGENCY_CATEGORY_OPTIONS, this.report().urgency_category));
 
   protected readonly date = computed(() => formatDateTime(this.report().found_at));
 
@@ -413,7 +422,5 @@ export class ReportCardComponent {
     });
   });
 
-  protected readonly comments = computed(
-    () => this.report().report_comments?.[0]?.count ?? 0
-  );
+  protected readonly comments = computed(() => this.report().report_comments?.[0]?.count ?? 0);
 }

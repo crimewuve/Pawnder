@@ -1,6 +1,6 @@
-import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
+import type { OnInit } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
 import {
   IonBackButton,
   IonButton,
@@ -37,12 +37,17 @@ import {
   shieldCheckmarkOutline,
   sparkles,
 } from 'ionicons/icons';
+import { firstValueFrom } from 'rxjs';
+
 import { AuthService } from '../../core/services/auth.service';
 import { BreedsService } from '../../core/services/breeds.service';
-import { CameraService, CapturedPhoto } from '../../core/services/camera.service';
-import { DogAnalysis, DogVisionService } from '../../core/services/dog-vision.service';
+import type { CapturedPhoto } from '../../core/services/camera.service';
+import { CameraService } from '../../core/services/camera.service';
+import type { BreedCandidate, DogAnalysis } from '../../core/services/dog-vision.service';
+import { DogVisionService } from '../../core/services/dog-vision.service';
 import { GeocodingService } from '../../core/services/geocoding.service';
-import { GpsFix, LocationService } from '../../core/services/location.service';
+import type { GpsFix } from '../../core/services/location.service';
+import { LocationService } from '../../core/services/location.service';
 import { PREF_KEYS, PreferencesService } from '../../core/services/preferences.service';
 import { ReportsService } from '../../core/services/reports.service';
 import { StorageService } from '../../core/services/storage.service';
@@ -50,17 +55,10 @@ import { UiService } from '../../core/services/ui.service';
 import { WeatherService, weatherSummary } from '../../core/services/weather.service';
 import { toLocalInput } from '../../core/utils/format';
 import { HardwareError } from '../../core/utils/hardware-error';
-import { Breed } from '../../models/breed.model';
-import {
-  DogSize,
-  NewDogReport,
-  SIZE_OPTIONS,
-  URGENCY_CATEGORY_OPTIONS,
-  URGENCY_LEVEL_OPTIONS,
-  UrgencyCategory,
-  UrgencyLevel,
-} from '../../models/dog-report.model';
-import { WeatherSnapshot } from '../../models/weather.model';
+import type { Breed } from '../../models/breed.model';
+import type { DogSize, NewDogReport, UrgencyCategory, UrgencyLevel } from '../../models/dog-report.model';
+import { SIZE_OPTIONS, URGENCY_CATEGORY_OPTIONS, URGENCY_LEVEL_OPTIONS } from '../../models/dog-report.model';
+import type { WeatherSnapshot } from '../../models/weather.model';
 import { MiniMapComponent } from '../../shared/components/mini-map/mini-map.component';
 import { WeatherIndicatorComponent } from '../../shared/components/weather-indicator/weather-indicator.component';
 
@@ -82,6 +80,9 @@ interface BreedSuggestion {
   name: string | null;
   label: string | null;
   score: number;
+  message: string;
+  uncertain: boolean;
+  candidates: BreedCandidate[];
 }
 
 @Component({
@@ -124,7 +125,7 @@ interface BreedSuggestion {
       </ion-toolbar>
     </ion-header>
 
-    <ion-content class="ion-padding">
+    <ion-content class="ion-padding pw-form">
       <!-- 1. TIPO DE PUBLICACIÓN: MASCOTA O EMERGENCIA -->
       <div class="emergency-toggle-card" [class.is-emergency]="isEmergency()">
         <div class="toggle-info">
@@ -156,13 +157,16 @@ interface BreedSuggestion {
           <img [src]="p.webPath" alt="Fotografía del perro" />
           @if (analyzing()) {
             <div class="status">
+              <span class="scan-dot"></span>
               <ion-spinner name="dots"></ion-spinner> {{ analyzingText() }}
             </div>
           } @else if (analysis(); as a) {
+            <div class="result" [class.result-ok]="a.status === 'dog'" [class.result-warn]="a.status !== 'dog'">
+              <ion-icon [icon]="a.status === 'dog' ? checkmarkCircle : alertCircle"></ion-icon>
+              <p>{{ a.message }}</p>
+            </div>
             @if (a.status === 'dog') {
-              <p class="ok">✔ Perro detectado ({{ pct(a.dogScore) }} %)</p>
-            } @else if (a.status === 'unavailable') {
-              <p class="warn">No se pudo verificar la foto automáticamente.</p>
+              <p class="ok">🐾 Perro detectado ({{ pct(a.dogScore) }} %)</p>
             }
           }
         } @else {
@@ -179,62 +183,84 @@ interface BreedSuggestion {
         </div>
       </div>
       @if (photoError()) {
-        <p class="field-error">{{ photoError() }}</p>
+        <p class="pw-error">{{ photoError() }}</p>
       }
 
       <!-- 3. DATOS DEL PERRO -->
       <h3>2. Datos del perro</h3>
       <ion-input
+        [class.pw-invalid]="titleError()"
         label="Título del reporte"
         labelPlacement="floating"
         fill="outline"
         maxlength="80"
-        [placeholder]="isEmergency() ? 'Ej: Perrito café atropellado en el parque' : 'Ej: Mi consentido Toby jugando en el parque'"
+        [placeholder]="
+          isEmergency() ? 'Ej: Perrito café atropellado en el parque' : 'Ej: Mi consentido Toby jugando en el parque'
+        "
         [value]="title()"
         (ionInput)="title.set($any($event).detail.value ?? '')"
       ></ion-input>
       @if (titleError()) {
-        <p class="field-error">{{ titleError() }}</p>
+        <p class="pw-error">{{ titleError() }}</p>
       }
 
       @if (breedSuggestion(); as s) {
-        <div class="ai-card">
-          @if (s.name) {
-            <p>
-              <ion-icon [icon]="sparkles"></ion-icon> Raza sugerida: <b>{{ s.name }}</b>
-              @if (s.name === 'Mestizo') {
-                — no estamos seguros de la raza
-              } @else {
-                ({{ pct(s.score) }} % de seguridad)
-              }
-            </p>
-            <div class="photo-actions">
-              <ion-button size="small" (click)="confirmBreed()">✔ Es correcta</ion-button>
-              <ion-button size="small" fill="outline" (click)="openBreedModal()">Elegir otra</ion-button>
-            </div>
-          } @else {
-            <p>
-              <ion-icon [icon]="sparkles"></ion-icon> Parece un <b>{{ s.label }}</b>, pero esa raza no está en la lista. Elígela manualmente.
-            </p>
-            <ion-button size="small" (click)="openBreedModal()">Elegir raza</ion-button>
+        <div class="ai-card" [class.ai-uncertain]="s.uncertain">
+          <div class="ai-head">
+            <ion-icon [icon]="sparkles"></ion-icon>
+            @if (s.name) {
+              <p>
+                @if (s.uncertain) {
+                  Posible raza: <b>{{ s.name }}</b>
+                } @else {
+                  Raza sugerida: <b>{{ s.name }}</b> ({{ pct(s.score) }} % de seguridad)
+                }
+              </p>
+            } @else {
+              <p>
+                Parece un <b>{{ s.label }}</b>, pero esa raza no está en el catálogo.
+              </p>
+            }
+          </div>
+          @if (s.uncertain) {
+            <p class="ai-note">{{ s.message }}</p>
           }
+          @if (s.candidates.length > 1) {
+            <div class="candidate-chips">
+              @for (c of s.candidates; track c.label) {
+                <button
+                  type="button"
+                  class="candidate"
+                  [class.selected]="breed() === c.breed"
+                  (click)="selectCandidate(c)"
+                >
+                  {{ c.breed || c.label }} <small>{{ pct(c.score) }} %</small>
+                </button>
+              }
+            </div>
+          }
+          <div class="photo-actions">
+            <ion-button size="small" (click)="confirmBreed()">✔ Es correcta</ion-button>
+            <ion-button size="small" fill="outline" (click)="openBreedModal()">Elegir otra raza</ion-button>
+          </div>
         </div>
       }
 
-      <ion-item button [detail]="true" class="pick" (click)="openBreedModal()">
+      <ion-item button [detail]="true" class="pw-pick" [class.pw-invalid]="breedError()" (click)="openBreedModal()">
         <ion-label>
           <p>Raza</p>
           <h3>{{ breed() || 'Toca para elegir una raza' }}</h3>
         </ion-label>
       </ion-item>
       @if (breedError()) {
-        <p class="field-error">{{ breedError() }}</p>
+        <p class="pw-error">{{ breedError() }}</p>
       }
 
       <ion-grid class="no-pad">
         <ion-row>
           <ion-col size="12" sizeMd="6">
             <ion-select
+              [class.pw-invalid]="sizeError()"
               label="Tamaño aproximado"
               labelPlacement="floating"
               fill="outline"
@@ -247,39 +273,42 @@ interface BreedSuggestion {
               }
             </ion-select>
             @if (sizeError()) {
-              <p class="field-error">{{ sizeError() }}</p>
+              <p class="pw-error">{{ sizeError() }}</p>
             }
           </ion-col>
           <ion-col size="12" sizeMd="6">
-            <label class="dt-label" for="foundAt">{{ isEmergency() ? 'Fecha y hora del avistamiento' : 'Fecha y hora de la foto' }}</label>
-            <input
-              id="foundAt"
-              class="dt"
+            <ion-input
+              [class.pw-invalid]="dateError()"
+              [label]="isEmergency() ? 'Fecha y hora del avistamiento' : 'Fecha y hora de la foto'"
+              labelPlacement="floating"
+              fill="outline"
               type="datetime-local"
               [value]="foundAt()"
               [max]="maxDate"
-              (input)="onFoundAt($event)"
-            />
+              (ionInput)="onFoundAt($any($event).detail.value ?? '')"
+            ></ion-input>
             @if (dateError()) {
-              <p class="field-error">{{ dateError() }}</p>
+              <p class="pw-error">{{ dateError() }}</p>
             }
           </ion-col>
         </ion-row>
       </ion-grid>
 
       <ion-textarea
+        [class.pw-invalid]="descError()"
         label="Descripción"
         labelPlacement="floating"
         fill="outline"
         [rows]="3"
         [counter]="true"
+        auto-grow
         maxlength="400"
         placeholder="Color, señas particulares, collar, personalidad…"
         [value]="description()"
         (ionInput)="description.set($any($event).detail.value ?? '')"
       ></ion-textarea>
       @if (descError()) {
-        <p class="field-error">{{ descError() }}</p>
+        <p class="pw-error">{{ descError() }}</p>
       }
 
       <ion-textarea
@@ -288,6 +317,8 @@ interface BreedSuggestion {
         labelPlacement="floating"
         fill="outline"
         [rows]="3"
+        [counter]="true"
+        auto-grow
         maxlength="400"
         placeholder="Comportamiento, condición física o información extra…"
         [value]="situation()"
@@ -296,7 +327,7 @@ interface BreedSuggestion {
 
       <!-- 4. UBICACIÓN Y SEGURIDAD CONTRA ROBO -->
       <h3>3. Ubicación</h3>
-      <p class="hint">Indica la zona donde se encuentra o vio al perrito.</p>
+      <p class="pw-hint">Indica la zona donde se encuentra o vio al perrito.</p>
 
       <!-- Selector de Ubicación Precisa vs Aproximada (Protección de Mascotas) -->
       <div class="privacy-card">
@@ -333,7 +364,7 @@ interface BreedSuggestion {
           [isApproximate]="isApproximateLocation()"
           (moved)="onMapMoved($event)"
         />
-        <p class="hint">
+        <p class="pw-hint">
           {{
             isApproximateLocation()
               ? 'El mapa mostrará un radio aproximado para no revelar tu domicilio exacto.'
@@ -373,15 +404,16 @@ interface BreedSuggestion {
         }
       </ion-button>
       @if (gpsError()) {
-        <p class="field-error">{{ gpsError() }}</p>
+        <p class="pw-error">{{ gpsError() }}</p>
         <ion-button size="small" fill="clear" (click)="getLocation()">Reintentar</ion-button>
       }
       @if (locationError()) {
-        <p class="field-error">{{ locationError() }}</p>
+        <p class="pw-error">{{ locationError() }}</p>
       }
 
       <ion-input
         class="gap"
+        [class.pw-invalid]="zoneError()"
         label="Barrio o sector de referencia"
         labelPlacement="floating"
         fill="outline"
@@ -391,18 +423,18 @@ interface BreedSuggestion {
         (ionInput)="onZoneInput($any($event).detail.value ?? '')"
       ></ion-input>
       @if (zoneError()) {
-        <p class="field-error">{{ zoneError() }}</p>
+        <p class="pw-error">{{ zoneError() }}</p>
       }
 
       <!-- 5. CLIMA -->
       @if (gps()) {
         <h3>4. Clima en la zona</h3>
         @if (weatherLoading()) {
-          <div class="center"><ion-spinner name="dots"></ion-spinner> Consultando el clima…</div>
+          <div class="center pw-loading"><ion-spinner name="dots"></ion-spinner> Consultando el clima…</div>
         } @else if (weather(); as w) {
           <app-weather-indicator [emoji]="w.weather_emoji" [summary]="weatherText()" [showNote]="true" />
         } @else if (weatherError()) {
-          <p class="field-error">{{ weatherError() }}</p>
+          <p class="pw-error">{{ weatherError() }}</p>
           <ion-button size="small" fill="outline" (click)="loadWeather()">Reintentar clima</ion-button>
         }
       }
@@ -411,7 +443,7 @@ interface BreedSuggestion {
       @if (isEmergency()) {
         <div class="emergency-details-block">
           <h3>5. Nivel y Motivo de Urgencia 🚨</h3>
-          <p class="hint">Especifica la gravedad para coordinar con veterinarias o rescatistas.</p>
+          <p class="pw-hint">Especifica la gravedad para coordinar con veterinarias o rescatistas.</p>
 
           <ion-segment [value]="urgencyLevel()" (ionChange)="urgencyLevel.set($any($event).detail.value)">
             @for (o of levelOptions; track o.value) {
@@ -423,6 +455,7 @@ interface BreedSuggestion {
 
           <ion-select
             class="gap"
+            [class.pw-invalid]="categoryError()"
             label="Categoría de la emergencia"
             labelPlacement="floating"
             fill="outline"
@@ -435,13 +468,14 @@ interface BreedSuggestion {
             }
           </ion-select>
           @if (categoryError()) {
-            <p class="field-error">{{ categoryError() }}</p>
+            <p class="pw-error">{{ categoryError() }}</p>
           }
 
           <!-- Si eligen "Otro", se abre el campo para escribir -->
           @if (urgencyCategory() === 'otro') {
             <ion-input
               class="gap"
+              [class.pw-invalid]="customCategoryError()"
               label="Escribe el motivo de la emergencia"
               labelPlacement="floating"
               fill="outline"
@@ -451,7 +485,7 @@ interface BreedSuggestion {
               (ionInput)="customCategory.set($any($event).detail.value ?? '')"
             ></ion-input>
             @if (customCategoryError()) {
-              <p class="field-error">{{ customCategoryError() }}</p>
+              <p class="pw-error">{{ customCategoryError() }}</p>
             }
           }
         </div>
@@ -490,12 +524,12 @@ interface BreedSuggestion {
             ></ion-searchbar>
           </ion-toolbar>
         </ion-header>
-        <ion-content>
+        <ion-content class="pw-form">
           @if (breedsLoading()) {
-            <div class="center"><ion-spinner name="crescent"></ion-spinner> Cargando razas…</div>
+            <div class="center pw-loading"><ion-spinner name="crescent"></ion-spinner> Cargando razas…</div>
           } @else if (breedsError()) {
             <div class="center">
-              <p class="field-error">{{ breedsError() }}</p>
+              <p class="pw-error">{{ breedsError() }}</p>
               <ion-button (click)="loadBreeds()">Reintentar</ion-button>
             </div>
           } @else {
@@ -521,11 +555,6 @@ interface BreedSuggestion {
         font-weight: 800;
         color: #1b6b53;
       }
-      .hint {
-        margin: 0 0 8px;
-        color: #8a817a;
-        font-size: 0.8rem;
-      }
       .gap {
         margin-top: 14px;
       }
@@ -533,15 +562,10 @@ interface BreedSuggestion {
         padding: 0;
         margin-top: 8px;
       }
-      .field-error {
-        margin: 4px 4px 0;
-        font-size: 0.8rem;
-        color: var(--ion-color-danger);
-      }
       .emergency-toggle-card {
         background: #fdfaf6;
         border: 2px solid #bfe9da;
-        border-radius: 18px;
+        border-radius: var(--pw-card-radius);
         padding: 14px 16px;
         display: flex;
         align-items: center;
@@ -581,7 +605,7 @@ interface BreedSuggestion {
       .privacy-card {
         background: #f2fbf7;
         border: 1px solid #c8ede0;
-        border-radius: 16px;
+        border-radius: var(--pw-card-radius);
         padding: 12px;
         margin-bottom: 14px;
       }
@@ -606,7 +630,7 @@ interface BreedSuggestion {
       }
       .photo-box {
         background: #fff;
-        border-radius: 18px;
+        border-radius: var(--pw-card-radius);
         padding: 12px;
         text-align: center;
         border: 2px dashed #bfe9da;
@@ -656,6 +680,60 @@ interface BreedSuggestion {
         font-size: 0.85rem;
         margin: 8px 0 0;
       }
+      .result {
+        margin-top: 8px;
+        padding: 8px 10px;
+        border-radius: 12px;
+        font-size: 0.82rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        text-align: left;
+        line-height: 1.35;
+        animation: result-in 0.28s ease-out;
+      }
+      .result ion-icon {
+        font-size: 18px;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .result p {
+        margin: 0;
+      }
+      .result-ok {
+        background: #eaf8f2;
+        color: #1b6b53;
+      }
+      .result-warn {
+        background: #fff6e8;
+        color: #8a5a00;
+      }
+      @keyframes result-in {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .scan-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #10b981;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6);
+        animation: scan-pulse 1.2s infinite;
+      }
+      @keyframes scan-pulse {
+        70% {
+          box-shadow: 0 0 0 9px rgba(16, 185, 129, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+        }
+      }
       .ai-card {
         background: #eaf8f2;
         border: 1px solid #bfe9da;
@@ -663,32 +741,60 @@ interface BreedSuggestion {
         padding: 10px 12px;
         margin-top: 12px;
       }
+      .ai-card.ai-uncertain {
+        background: #fff8ec;
+        border-color: #f7d9a6;
+      }
+      .ai-head {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      .ai-head ion-icon {
+        font-size: 20px;
+        color: #1b8a6b;
+        flex-shrink: 0;
+      }
       .ai-card p {
         margin: 0 0 4px;
         color: #2f4a40;
       }
-      .pick {
-        --background: #fff;
-        border-radius: 12px;
-        margin-top: 12px;
-        border: 1px solid #d9d2c8;
-      }
-      .dt-label {
-        display: block;
-        margin: 4px 4px 2px;
+      .ai-note {
         font-size: 0.8rem;
-        color: #6b625b;
+        color: #8a5a00;
+        margin: 6px 0 0 !important;
       }
-      .dt {
-        width: 100%;
-        box-sizing: border-box;
-        min-height: 56px;
-        padding: 0 12px;
-        font-size: 1rem;
+      .candidate-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin: 10px 0 2px;
+      }
+      .candidate {
+        border: 1px solid #bfe9da;
         background: #fff;
-        color: #2f2a26;
-        border: 1px solid #d9d2c8;
-        border-radius: 6px;
+        color: #1b6b53;
+        border-radius: 999px;
+        padding: 6px 12px;
+        font: inherit;
+        font-size: 0.78rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition:
+          transform 0.15s ease,
+          background 0.15s ease;
+      }
+      .candidate small {
+        opacity: 0.7;
+        font-weight: 600;
+      }
+      .candidate:active {
+        transform: scale(0.95);
+      }
+      .candidate.selected {
+        background: #10b981;
+        border-color: #10b981;
+        color: #fff;
       }
       .addr {
         margin: 8px 2px 0;
@@ -712,7 +818,7 @@ interface BreedSuggestion {
         background: #fff6f4;
         border: 1px solid #ffd4cb;
         padding: 14px;
-        border-radius: 16px;
+        border-radius: var(--pw-card-radius);
         margin-top: 16px;
       }
       .publish {
@@ -776,11 +882,12 @@ export class CreateReportPage implements OnInit {
   protected readonly analyzing = signal(false);
   protected readonly analysis = signal<DogAnalysis | null>(null);
   protected readonly breedSuggestion = signal<BreedSuggestion | null>(null);
-  protected readonly analyzingText = computed(() =>
-    this.vision.modelStatus() === 'loading'
-      ? 'Preparando el analizador de imágenes (solo la primera vez)…'
-      : 'Analizando la fotografía…'
-  );
+  protected readonly analyzingText = computed(() => {
+    const status = this.vision.modelStatus();
+    if (status === 'loading') return 'Preparando al detector de perritos (solo la primera vez)…';
+    if (status === 'error') return 'Analizando con el modelo disponible…';
+    return 'Buscando al perrito y su raza…';
+  });
 
   // Razas
   protected readonly breeds = signal<Breed[]>([]);
@@ -790,7 +897,9 @@ export class CreateReportPage implements OnInit {
   protected readonly breedQuery = signal('');
   protected readonly filteredBreeds = computed(() => {
     const q = this.breedQuery().trim().toLowerCase();
-    return this.breeds().filter((b) => b.name.toLowerCase().includes(q)).slice(0, 200);
+    return this.breeds()
+      .filter((b) => b.name.toLowerCase().includes(q))
+      .slice(0, 200);
   });
 
   // GPS, dirección y clima
@@ -814,36 +923,28 @@ export class CreateReportPage implements OnInit {
 
   // Validaciones
   protected readonly photoError = computed(() =>
-    this.submitted() && !this.photo() ? 'Toma o elige una fotografía del perro.' : ''
+    this.submitted() && !this.photo() ? 'Toma o elige una fotografía del perro.' : '',
   );
   protected readonly titleError = computed(() =>
-    this.submitted() && this.title().trim().length < 3
-      ? 'El título debe tener al menos 3 caracteres.'
-      : ''
+    this.submitted() && this.title().trim().length < 3 ? 'El título debe tener al menos 3 caracteres.' : '',
   );
   protected readonly breedError = computed(() =>
-    this.submitted() && !this.breed()
-      ? 'Selecciona una raza (o "Mestizo" / "Raza desconocida").'
-      : ''
+    this.submitted() && !this.breed() ? 'Selecciona una raza (o "Mestizo" / "Raza desconocida").' : '',
   );
   protected readonly sizeError = computed(() =>
-    this.submitted() && !this.size() ? 'Selecciona el tamaño aproximado.' : ''
+    this.submitted() && !this.size() ? 'Selecciona el tamaño aproximado.' : '',
   );
   protected readonly dateError = computed(() => {
     if (!this.submitted()) return '';
     const value = this.foundAt();
     if (!value) return 'Indica la fecha y hora del encuentro.';
-    return new Date(value).getTime() > Date.now() + 5 * 60000
-      ? 'La fecha no puede estar en el futuro.'
-      : '';
+    return new Date(value).getTime() > Date.now() + 5 * 60000 ? 'La fecha no puede estar en el futuro.' : '';
   });
   protected readonly descError = computed(() =>
-    this.submitted() && this.description().trim().length < 10
-      ? 'Describe al perro con al menos 10 caracteres.'
-      : ''
+    this.submitted() && this.description().trim().length < 10 ? 'Describe al perro con al menos 10 caracteres.' : '',
   );
   protected readonly zoneError = computed(() =>
-    this.submitted() && this.zone().trim().length < 2 ? 'Indica el barrio o sector.' : ''
+    this.submitted() && this.zone().trim().length < 2 ? 'Indica el barrio o sector.' : '',
   );
   protected readonly locationError = computed(() => {
     if (!this.submitted()) return '';
@@ -853,7 +954,7 @@ export class CreateReportPage implements OnInit {
   protected readonly categoryError = computed(() =>
     this.submitted() && this.isEmergency() && !this.urgencyCategory()
       ? 'Elige la categoría de la situación urgente.'
-      : ''
+      : '',
   );
   protected readonly customCategoryError = computed(() =>
     this.submitted() &&
@@ -861,7 +962,7 @@ export class CreateReportPage implements OnInit {
     this.urgencyCategory() === 'otro' &&
     this.customCategory().trim().length < 3
       ? 'Describe el motivo de la emergencia.'
-      : ''
+      : '',
   );
 
   private draftReady = false;
@@ -956,29 +1057,34 @@ export class CreateReportPage implements OnInit {
       const extraIds = this.breedsApi.extraOptions.map((b) => b.id);
       const apiBreeds = this.breeds().filter((b) => !extraIds.includes(b.id));
 
-      const result = await this.vision.analyze(photo.webPath, apiBreeds);
+      const result = await this.vision.analyze(photo.blob, apiBreeds);
       if (this.photo() !== photo) return;
 
       this.analysis.set(result);
-      if (result.status === 'not-dog') {
-        this.photo.set(null);
-        await this.ui.notice(
-          'No parece un perro',
-          `La fotografía no parece mostrar un perro (probabilidad: ${this.pct(result.dogScore)} %). ` +
-            'Toma otra foto donde se vea claramente al animal.'
-        );
-        return;
-      }
       if (result.status === 'dog') {
         if (result.suggestion) this.breed.set(result.suggestion);
         this.breedSuggestion.set({
           name: result.suggestion,
           label: result.breedLabel,
           score: result.breedScore,
+          message: result.message,
+          uncertain: result.uncertain,
+          candidates: result.candidates,
         });
+      } else {
+        this.breedSuggestion.set(null);
       }
     } finally {
       this.analyzing.set(false);
+    }
+  }
+
+  protected selectCandidate(candidate: BreedCandidate): void {
+    if (candidate.breed) {
+      this.breed.set(candidate.breed);
+      void this.ui.toast('Raza actualizada ✔', 'success');
+    } else {
+      this.openBreedModal();
     }
   }
 
@@ -1013,8 +1119,8 @@ export class CreateReportPage implements OnInit {
   }
 
   // ---------- Fecha y sector ----------
-  protected onFoundAt(event: Event): void {
-    this.foundAt.set((event.target as HTMLInputElement).value);
+  protected onFoundAt(value: string): void {
+    this.foundAt.set(value ?? '');
   }
 
   protected onZoneInput(value: string): void {
@@ -1131,7 +1237,12 @@ export class CreateReportPage implements OnInit {
       }
 
       const isEm = this.isEmergency();
+      const customReason = isEm && this.urgencyCategory() === 'otro' ? this.customCategory().trim() : '';
+      const situationParts = [customReason ? `Motivo de emergencia: ${customReason}` : '', this.situation().trim()];
 
+      // dog_reports no tiene columnas para `custom_category`, `is_emergency` ni
+      // `is_approximate_location`. La urgencia ya se guarda en `urgency_level` y
+      // el motivo "Otro" se conserva en `situation` (que la ficha muestra tal cual).
       const report: NewDogReport = {
         title: this.title().trim(),
         photo_url: uploaded.publicUrl,
@@ -1139,10 +1250,10 @@ export class CreateReportPage implements OnInit {
         breed: this.breed(),
         size: this.size() as DogSize,
         description: this.description().trim(),
-        situation: this.situation().trim() || null,
+        situation: situationParts.filter(Boolean).join('\n\n') || null,
         found_at: new Date(this.foundAt()).toISOString(),
         urgency_level: isEm ? this.urgencyLevel() : 'normal',
-        urgency_category: isEm ? (this.urgencyCategory() || null) : null,
+        urgency_category: isEm ? this.urgencyCategory() || null : null,
         latitude: finalLat,
         longitude: finalLng,
         zone: this.zone().trim(),
@@ -1154,9 +1265,6 @@ export class CreateReportPage implements OnInit {
         precipitation: w?.precipitation ?? null,
         wind_speed: w?.wind_speed ?? null,
         report_status: 'activo',
-        is_approximate_location: this.isApproximateLocation(),
-        is_emergency: isEm,
-        custom_category: isEm && this.urgencyCategory() === 'otro' ? this.customCategory().trim() : null,
       };
 
       await this.reports.create(report, user.id);
@@ -1167,14 +1275,11 @@ export class CreateReportPage implements OnInit {
         isEm
           ? '¡Alerta de rescate publicada! La comunidad ha sido notificada 🚨'
           : '¡Mascota compartida! Gracias por ser parte de Pawnder 🐾',
-        'success'
+        'success',
       );
     } catch (e) {
       if (uploadedPath) await this.storage.deletePhoto(uploadedPath).catch(() => undefined);
-      await this.ui.toast(
-        e instanceof Error ? e.message : 'No se pudo publicar el reporte.',
-        'danger'
-      );
+      await this.ui.toast(e instanceof Error ? e.message : 'No se pudo publicar el reporte.', 'danger');
     } finally {
       this.publishing.set(false);
     }

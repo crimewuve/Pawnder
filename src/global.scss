@@ -1,25 +1,29 @@
 /*
- * App Global CSS — Pawnder: Dog Pokédex & Social Rescue System
+ * App Global CSS — Pawnder: Dog Directory & Social Rescue System
  */
 
 /* Core CSS required for Ionic components to work properly */
-@import "@ionic/angular/css/core.css";
-@import "@ionic/angular/css/normalize.css";
-@import "@ionic/angular/css/structure.css";
-@import "@ionic/angular/css/typography.css";
-@import "@ionic/angular/css/display.css";
-@import "@ionic/angular/css/padding.css";
-@import "@ionic/angular/css/float-elements.css";
-@import "@ionic/angular/css/text-alignment.css";
-@import "@ionic/angular/css/text-transformation.css";
-@import "@ionic/angular/css/flex-utils.css";
+@import '@ionic/angular/css/core.css';
+@import '@ionic/angular/css/normalize.css';
+@import '@ionic/angular/css/structure.css';
+@import '@ionic/angular/css/typography.css';
+@import '@ionic/angular/css/display.css';
+@import '@ionic/angular/css/padding.css';
+@import '@ionic/angular/css/float-elements.css';
+@import '@ionic/angular/css/text-alignment.css';
+@import '@ionic/angular/css/text-transformation.css';
+@import '@ionic/angular/css/flex-utils.css';
 
 /* ===== Pawnder: Design Tokens ===== */
 :root:root {
   color-scheme: light;
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-family:
+    'Plus Jakarta Sans',
+    system-ui,
+    -apple-system,
+    sans-serif;
 
-  /* Palette: Warm Sand + Forest Emerald + Pokédex Coral + Alert Crimson */
+  /* Palette: Warm Sand + Forest Emerald + Pawnder Coral + Alert Crimson */
   --ion-background-color: #faf6f0;
   --ion-background-color-rgb: 250, 246, 240;
   --ion-text-color: #1f2937;
@@ -33,7 +37,7 @@
   --ion-color-primary-shade: #059669;
   --ion-color-primary-tint: #34d399;
 
-  /* Warning / Pokédex Accent: Warm Amber Coral */
+  /* Warning / Pawnder Accent: Warm Amber Coral */
   --ion-color-warning: #f97316;
   --ion-color-warning-rgb: 249, 115, 22;
   --ion-color-warning-contrast: #ffffff;
@@ -67,15 +71,32 @@
   --pw-shadow-hover: 0 12px 30px -4px rgba(31, 41, 55, 0.12), 0 4px 10px -2px rgba(31, 41, 55, 0.05);
   --pw-shadow-alert: 0 8px 24px -3px rgba(239, 68, 68, 0.35);
   --pw-font-mono: 'JetBrains Mono', monospace;
+
+  /* Form system: one visual language for every control */
+  --pw-field-radius: 14px;
+  --pw-field-border: #d7e4dc;
+  --pw-field-border-hover: #9ad9c2;
+  --pw-field-bg: #ffffff;
+  --pw-field-label: #66756e;
+  --pw-card-radius: 18px;
 }
 
 body {
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-family:
+    'Plus Jakarta Sans',
+    system-ui,
+    -apple-system,
+    sans-serif;
   letter-spacing: -0.01em;
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   font-weight: 800;
   letter-spacing: -0.03em;
@@ -94,7 +115,7 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 999px;
 }
 
-/* ===== Leaflet: Pines de Pokédex y Rescate ===== */
+/* ===== Leaflet: Pines de Pawnder y Rescate ===== */
 .pawn-pin {
   background: transparent;
   border: none;
@@ -122,20 +143,260 @@ h1, h2, h3, h4, h5, h6 {
   animation: pulse-pin 1.4s infinite cubic-bezier(0.4, 0, 0.6, 1);
 }
 @keyframes pulse-pin {
-  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.8); }
-  70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.8);
+  }
+  70% {
+    box-shadow: 0 0 0 12px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
 }
 
 /* Leaflet Cluster Bubbles */
-.marker-cluster-small, .marker-cluster-medium, .marker-cluster-large {
+.marker-cluster-small,
+.marker-cluster-medium,
+.marker-cluster-large {
   background-color: rgba(16, 185, 129, 0.25) !important;
 }
-.marker-cluster-small div, .marker-cluster-medium div, .marker-cluster-large div {
+.marker-cluster-small div,
+.marker-cluster-medium div,
+.marker-cluster-large div {
   background-color: #10b981 !important;
   color: #ffffff !important;
   font-weight: 800 !important;
   font-family: var(--pw-font-mono) !important;
   font-size: 13px !important;
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+/* ===== Pawnder: shared publication form system ===== */
+.pw-form {
+  --pw-form-gap: 14px;
+}
+
+.pw-form ion-input,
+.pw-form ion-textarea,
+.pw-form ion-select,
+.pw-form ion-searchbar {
+  --background: var(--pw-field-bg);
+  --color: var(--ion-text-color);
+  --placeholder-color: #98a39d;
+  --border-color: var(--pw-field-border);
+  --border-radius: var(--pw-field-radius);
+  --highlight-color-focused: var(--ion-color-primary);
+  --highlight-color-invalid: var(--ion-color-danger);
+  --highlight-color-valid: var(--ion-color-primary);
+  --padding-start: 14px;
+  --padding-end: 14px;
+  --padding-top: 10px;
+  --padding-bottom: 10px;
+  font-size: 1rem;
+}
+
+.pw-form ion-input,
+.pw-form ion-textarea,
+.pw-form ion-select {
+  min-height: 56px;
+  margin-bottom: 2px;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.pw-form ion-input:hover,
+.pw-form ion-textarea:hover,
+.pw-form ion-select:hover {
+  --border-color: var(--pw-field-border-hover);
+}
+
+.pw-form ion-input:focus-within,
+.pw-form ion-textarea:focus-within,
+.pw-form ion-select:focus-within {
+  --border-color: var(--ion-color-primary);
+  --highlight-color-focused: var(--ion-color-primary);
+}
+
+.pw-form .pw-invalid,
+.pw-form .pw-invalid:hover,
+.pw-form .pw-invalid:focus-within {
+  --border-color: var(--ion-color-danger) !important;
+  --highlight-color-focused: var(--ion-color-danger);
+}
+
+/* Raza picker: same outline, radius and rhythm as the other fields */
+.pw-form ion-item.pw-pick {
+  --background: var(--pw-field-bg);
+  --color: var(--ion-text-color);
+  --border-color: var(--pw-field-border);
+  --border-radius: var(--pw-field-radius);
+  --min-height: 56px;
+  --padding-start: 14px;
+  --padding-end: 14px;
+  border: 1px solid var(--pw-field-border);
+  margin-top: 12px;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.pw-form ion-item.pw-pick:hover {
+  border-color: var(--pw-field-border-hover);
+  box-shadow: var(--pw-shadow-soft);
+}
+
+.pw-form ion-item.pw-pick.pw-invalid,
+.pw-form ion-item.pw-pick.pw-invalid:hover {
+  border-color: var(--ion-color-danger) !important;
+}
+
+.pw-form ion-item.pw-pick ion-label p {
+  margin: 0 0 2px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--pw-field-label);
+}
+
+.pw-form ion-item.pw-pick ion-label h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ion-text-color);
+}
+
+/* Segmented selectors share the same rounded surface */
+.pw-form ion-segment {
+  --background: #edf7f2;
+  border-radius: 12px;
+  padding: 4px;
+  min-height: 46px;
+}
+
+.pw-form ion-segment-button {
+  --background-checked: var(--ion-color-primary);
+  --color: #5d7067;
+  --color-checked: #ffffff;
+  --indicator-color: transparent;
+  --indicator-box-shadow: none;
+  --border-radius: 10px;
+  --padding-start: 8px;
+  --padding-end: 8px;
+  min-height: 38px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: none;
+  transition:
+    transform 0.15s ease,
+    background-color 0.18s ease;
+}
+
+.pw-form ion-segment-button:active {
+  transform: scale(0.97);
+}
+
+/* Buttons: consistent radius, weight, hover and disabled feedback */
+.pw-form ion-button {
+  --border-radius: var(--pw-field-radius);
+  --box-shadow: 0 3px 10px rgba(16, 185, 129, 0.14);
+  --padding-start: 16px;
+  --padding-end: 16px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.pw-form ion-button:not([size='small']):not([fill='clear']) {
+  height: 46px;
+}
+
+.pw-form ion-button[fill='outline'],
+.pw-form ion-button[fill='clear'] {
+  --box-shadow: none;
+}
+
+.pw-form ion-button:not(:disabled):hover {
+  transform: translateY(-1px);
+  --box-shadow: 0 6px 16px rgba(16, 185, 129, 0.2);
+}
+
+.pw-form ion-button:not(:disabled):active {
+  transform: translateY(0) scale(0.99);
+}
+
+.pw-form ion-button:disabled {
+  opacity: 0.55;
+  --box-shadow: none;
+}
+
+.pw-form ion-spinner {
+  --color: var(--ion-color-primary);
+}
+
+.pw-form .pw-hint {
+  margin: 0 0 8px;
+  color: var(--pw-field-label);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.pw-form .pw-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 2px 0;
+  color: var(--ion-color-danger-shade);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.pw-form .pw-error::before {
+  content: '⚠';
+  font-size: 0.85rem;
+}
+
+.pw-form .pw-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--pw-field-label);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 480px) {
+  .pw-form ion-input,
+  .pw-form ion-textarea,
+  .pw-form ion-select {
+    font-size: 16px;
+  }
+
+  .pw-form ion-segment-button {
+    font-size: 0.75rem;
+  }
+
+  .pw-form .photo-actions {
+    flex-direction: column;
+  }
+}
+
+/* Keyboard focus that matches the playful PAWNDER look */
+:focus-visible {
+  outline: 3px solid rgba(16, 185, 129, 0.55) !important;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

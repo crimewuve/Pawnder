@@ -1,14 +1,8 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import {
-  IonButton,
-  IonContent,
-  IonIcon,
-  IonInput,
-  IonInputPasswordToggle,
-  IonSpinner,
-} from '@ionic/angular';
-import { arrowBackOutline, paw, sparkles } from 'ionicons/icons';
+import { IonButton, IonContent, IonIcon, IonInput, IonInputPasswordToggle, IonSpinner } from '@ionic/angular';
+import { arrowBackOutline } from 'ionicons/icons';
+
 import { AuthService } from '../../core/services/auth.service';
 import { UiService } from '../../core/services/ui.service';
 import { EMAIL_RE } from '../../core/utils/validators';
@@ -27,7 +21,7 @@ import { EMAIL_RE } from '../../core/utils/validators';
 
         <div class="brand-hero">
           <div class="logo-box">
-            <ion-icon [icon]="paw"></ion-icon>
+            <img src="assets/icon/favicon.png" alt="" />
           </div>
           <h1>Bienvenido a Pawnder</h1>
           <p class="tagline">La comunidad canina y red de rescate y adopción</p>
@@ -66,12 +60,7 @@ import { EMAIL_RE } from '../../core/utils/validators';
               <p class="field-error">{{ passError() }}</p>
             }
 
-            <ion-button
-              expand="block"
-              type="submit"
-              class="btn-submit"
-              [disabled]="loading()"
-            >
+            <ion-button expand="block" type="submit" class="btn-submit" [disabled]="loading()">
               @if (loading()) {
                 <ion-spinner name="crescent"></ion-spinner>
               } @else {
@@ -84,12 +73,7 @@ import { EMAIL_RE } from '../../core/utils/validators';
             <span>¿Nuevo en Pawnder?</span>
           </div>
 
-          <ion-button
-            expand="block"
-            fill="outline"
-            class="btn-register"
-            routerLink="/register"
-          >
+          <ion-button expand="block" fill="outline" class="btn-register" routerLink="/register">
             Crear una cuenta nueva
           </ion-button>
         </div>
@@ -135,13 +119,14 @@ import { EMAIL_RE } from '../../core/utils/validators';
         height: 76px;
         margin: 0 auto 14px;
         border-radius: 26px;
-        background: linear-gradient(145deg, #10b981 0%, #059669 100%);
-        color: #ffffff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 40px;
-        box-shadow: 0 10px 24px rgba(16, 185, 129, 0.35);
+        background: #ffffff;
+        overflow: hidden;
+        box-shadow: 0 10px 24px rgba(16, 185, 129, 0.2);
+      }
+      .logo-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
       }
       h1 {
         margin: 0;
@@ -217,7 +202,6 @@ export class LoginPage {
   private readonly router = inject(Router);
   private readonly ui = inject(UiService);
 
-  protected readonly paw = paw;
   protected readonly arrowBackOutline = arrowBackOutline;
 
   protected readonly email = signal('');

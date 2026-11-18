@@ -1,24 +1,17 @@
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import {
-  IonButton,
-  IonContent,
-  IonHeader,
-  IonIcon,
-  IonToolbar,
-} from '@ionic/angular';
+import { IonButton, IonContent, IonHeader, IonIcon, IonToolbar } from '@ionic/angular';
 import {
   addCircleOutline,
   bookOutline,
   chevronForwardOutline,
-  compassOutline,
   heart,
   logInOutline,
   logOutOutline,
   mapOutline,
-  paw,
   sparkles,
 } from 'ionicons/icons';
+
 import { AuthService } from '../../core/services/auth.service';
 import { UiService } from '../../core/services/ui.service';
 
@@ -29,10 +22,8 @@ import { UiService } from '../../core/services/ui.service';
     <ion-header class="ion-no-border header-transparent">
       <ion-toolbar>
         <div slot="start" class="brand-badge">
-          <div class="paw-mini-icon">
-            <ion-icon [icon]="paw"></ion-icon>
-          </div>
-          <span class="brand-title">Pawnder</span>
+          <img class="brand-mini-logo" src="assets/icon/favicon.png" alt="" />
+          <span class="brand-title">PAWNDER</span>
         </div>
         <div slot="end" class="auth-btn">
           @if (auth.isLoggedIn()) {
@@ -56,7 +47,7 @@ import { UiService } from '../../core/services/ui.service';
           <div class="hero-visual">
             <div class="paw-badge-glow"></div>
             <div class="paw-badge">
-              <ion-icon [icon]="paw"></ion-icon>
+              <img src="assets/icon/favicon.png" alt="" />
             </div>
             <div class="sparkle-tag">
               <ion-icon [icon]="sparkles"></ion-icon>
@@ -67,7 +58,8 @@ import { UiService } from '../../core/services/ui.service';
           <p class="tagline">Cada huella tiene una historia 🐶</p>
           <p class="welcome-user">
             @if (auth.isLoggedIn()) {
-              ¡Hola, <b>{{ auth.displayName() }}</b>! Explora los perros de la comunidad o ayuda a un perro en necesidad.
+              ¡Hola, <b>{{ auth.displayName() }}</b>! Explora los perros de la comunidad o ayuda a un perro en
+              necesidad.
             } @else {
               Únete a la red donde descubres, compartes y rescatas perritos en tu ciudad.
             }
@@ -77,7 +69,14 @@ import { UiService } from '../../core/services/ui.service';
         <!-- Bento Menu Options -->
         <div class="options-grid">
           <!-- 1. MAPA Y EXPLORAR -->
-          <div class="menu-card map-card" (click)="goTo('/map-view')">
+          <div
+            class="menu-card map-card"
+            role="button"
+            tabindex="0"
+            (click)="goTo('/map-view')"
+            (keydown.enter)="goTo('/map-view')"
+            (keydown.space)="goTo('/map-view')"
+          >
             <div class="card-icon map-icon">
               <ion-icon [icon]="mapOutline"></ion-icon>
             </div>
@@ -92,7 +91,14 @@ import { UiService } from '../../core/services/ui.service';
           </div>
 
           <!-- 2. COMPARTIR -->
-          <div class="menu-card share-card" (click)="goCreate()">
+          <div
+            class="menu-card share-card"
+            role="button"
+            tabindex="0"
+            (click)="goCreate()"
+            (keydown.enter)="goCreate()"
+            (keydown.space)="goCreate()"
+          >
             <div class="card-icon share-icon">
               <ion-icon [icon]="addCircleOutline"></ion-icon>
             </div>
@@ -107,7 +113,14 @@ import { UiService } from '../../core/services/ui.service';
           </div>
 
           <!-- 3. BIBLIOTECA (DIRECTORIO CANINO) -->
-          <div class="menu-card library-card" (click)="goTo('/home')">
+          <div
+            class="menu-card library-card"
+            role="button"
+            tabindex="0"
+            (click)="goTo('/home')"
+            (keydown.enter)="goTo('/home')"
+            (keydown.space)="goTo('/home')"
+          >
             <div class="card-icon library-icon">
               <ion-icon [icon]="bookOutline"></ion-icon>
             </div>
@@ -143,17 +156,11 @@ import { UiService } from '../../core/services/ui.service';
         gap: 8px;
         padding-left: 16px;
       }
-      .paw-mini-icon {
+      .brand-mini-logo {
         width: 32px;
         height: 32px;
         border-radius: 10px;
-        background: #10b981;
-        color: #ffffff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 18px;
-        box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+        object-fit: contain;
       }
       .brand-title {
         font-size: 1.2rem;
@@ -213,21 +220,29 @@ import { UiService } from '../../core/services/ui.service';
         animation: pulse-glow 2.4s infinite ease-in-out;
       }
       @keyframes pulse-glow {
-        0%, 100% { opacity: 0.6; transform: scale(0.96); }
-        50% { opacity: 1; transform: scale(1.08); }
+        0%,
+        100% {
+          opacity: 0.6;
+          transform: scale(0.96);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1.08);
+        }
       }
       .paw-badge {
         position: relative;
         width: 90px;
         height: 90px;
         border-radius: 30px;
-        background: linear-gradient(145deg, #10b981 0%, #059669 100%);
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 48px;
-        box-shadow: 0 12px 28px rgba(16, 185, 129, 0.35);
+        background: #ffffff;
+        overflow: hidden;
+        box-shadow: 0 12px 28px rgba(16, 185, 129, 0.2);
+      }
+      .paw-badge img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
       }
       .sparkle-tag {
         position: absolute;
@@ -285,7 +300,9 @@ import { UiService } from '../../core/services/ui.service';
         box-shadow: var(--pw-shadow-soft);
         border: 1px solid rgba(229, 231, 235, 0.8);
         cursor: pointer;
-        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+        transition:
+          transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+          box-shadow 0.2s ease;
       }
       .menu-card:hover {
         transform: translateY(-2px);
@@ -341,9 +358,18 @@ import { UiService } from '../../core/services/ui.service';
         text-transform: uppercase;
         letter-spacing: 0.04em;
       }
-      .green-accent { background: #d1fae5; color: #065f46; }
-      .coral-accent { background: #ffedd5; color: #9a3412; }
-      .amber-accent { background: #dbeafe; color: #1e40af; }
+      .green-accent {
+        background: #d1fae5;
+        color: #065f46;
+      }
+      .coral-accent {
+        background: #ffedd5;
+        color: #9a3412;
+      }
+      .amber-accent {
+        background: #dbeafe;
+        color: #1e40af;
+      }
 
       .card-info p {
         margin: 0;
@@ -377,7 +403,6 @@ export class MainMenuPage {
   private readonly router = inject(Router);
   private readonly ui = inject(UiService);
 
-  protected readonly paw = paw;
   protected readonly mapOutline = mapOutline;
   protected readonly addCircleOutline = addCircleOutline;
   protected readonly bookOutline = bookOutline;
