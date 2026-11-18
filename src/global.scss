@@ -1,37 +1,141 @@
 /*
- * App Global CSS
- * ----------------------------------------------------------------------------
- * Put style rules here that you want to apply globally. These styles are for
- * the entire app and not just one component. Additionally, this file can be
- * used as an entry point to import other CSS/Sass files to be included in the
- * output CSS.
- * For more information on global stylesheets, visit the documentation:
- * https://ionicframework.com/docs/layout/global-stylesheets
+ * App Global CSS — Pawnder: Dog Pokédex & Social Rescue System
  */
 
 /* Core CSS required for Ionic components to work properly */
 @import "@ionic/angular/css/core.css";
-
-/* Basic CSS for apps built with Ionic */
 @import "@ionic/angular/css/normalize.css";
 @import "@ionic/angular/css/structure.css";
 @import "@ionic/angular/css/typography.css";
 @import "@ionic/angular/css/display.css";
-
-/* Optional CSS utils that can be commented out */
 @import "@ionic/angular/css/padding.css";
 @import "@ionic/angular/css/float-elements.css";
 @import "@ionic/angular/css/text-alignment.css";
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
 
-/**
- * Ionic Dark Mode
- * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
- */
+/* ===== Pawnder: Design Tokens ===== */
+:root:root {
+  color-scheme: light;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
-/* @import "@ionic/angular/css/palettes/dark.class.css"; */
-@import '@ionic/angular/css/palettes/dark.system.css';
+  /* Palette: Warm Sand + Forest Emerald + Pokédex Coral + Alert Crimson */
+  --ion-background-color: #faf6f0;
+  --ion-background-color-rgb: 250, 246, 240;
+  --ion-text-color: #1f2937;
+  --ion-text-color-rgb: 31, 41, 55;
+
+  /* Primary: Vibrant Emerald Mint */
+  --ion-color-primary: #10b981;
+  --ion-color-primary-rgb: 16, 185, 129;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #059669;
+  --ion-color-primary-tint: #34d399;
+
+  /* Warning / Pokédex Accent: Warm Amber Coral */
+  --ion-color-warning: #f97316;
+  --ion-color-warning-rgb: 249, 115, 22;
+  --ion-color-warning-contrast: #ffffff;
+  --ion-color-warning-contrast-rgb: 255, 255, 255;
+  --ion-color-warning-shade: #ea580c;
+  --ion-color-warning-tint: #fb923c;
+
+  /* Danger: Rescue Emergency Crimson */
+  --ion-color-danger: #ef4444;
+  --ion-color-danger-rgb: 239, 68, 68;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: #dc2626;
+  --ion-color-danger-tint: #f87171;
+
+  /* Card & Surfaces */
+  --ion-card-background: #ffffff;
+  --ion-item-background: #ffffff;
+  --ion-toolbar-background: #faf6f0;
+  --ion-toolbar-color: #1f2937;
+  --ion-tab-bar-background: #ffffff;
+  --ion-tab-bar-color: #9ca3af;
+  --ion-tab-bar-color-selected: #10b981;
+
+  /* Custom Elevation & Geometry */
+  --pw-radius-sm: 8px;
+  --pw-radius-md: 14px;
+  --pw-radius-lg: 22px;
+  --pw-radius-xl: 30px;
+  --pw-shadow-soft: 0 4px 20px -2px rgba(31, 41, 55, 0.06), 0 2px 6px -1px rgba(31, 41, 55, 0.04);
+  --pw-shadow-hover: 0 12px 30px -4px rgba(31, 41, 55, 0.12), 0 4px 10px -2px rgba(31, 41, 55, 0.05);
+  --pw-shadow-alert: 0 8px 24px -3px rgba(239, 68, 68, 0.35);
+  --pw-font-mono: 'JetBrains Mono', monospace;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+/* Polished Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.4);
+  border-radius: 999px;
+}
+
+/* ===== Leaflet: Pines de Pokédex y Rescate ===== */
+.pawn-pin {
+  background: transparent;
+  border: none;
+}
+.pawn-pin .pin {
+  width: 40px;
+  height: 40px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #ffffff;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.pawn-pin:hover .pin {
+  transform: rotate(-45deg) scale(1.12);
+}
+.pawn-pin .pin span {
+  transform: rotate(45deg);
+  font-size: 18px;
+}
+.pawn-pin.alert-pin .pin {
+  animation: pulse-pin 1.4s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+@keyframes pulse-pin {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.8); }
+  70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* Leaflet Cluster Bubbles */
+.marker-cluster-small, .marker-cluster-medium, .marker-cluster-large {
+  background-color: rgba(16, 185, 129, 0.25) !important;
+}
+.marker-cluster-small div, .marker-cluster-medium div, .marker-cluster-large div {
+  background-color: #10b981 !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  font-family: var(--pw-font-mono) !important;
+  font-size: 13px !important;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
