@@ -11,13 +11,11 @@ export class BreedsService {
   private readonly maxPages = 15;
   private cache$?: Observable<Breed[]>;
 
-  /** Opciones adicionales que no vienen de la API */
   readonly extraOptions: Breed[] = [
     { id: 'mestizo', name: 'Mestizo' },
     { id: 'desconocida', name: 'Raza desconocida' },
   ];
 
-  /** Lista completa de razas (recorre la paginación). Se guarda en memoria tras la primera carga. */
   getBreeds(): Observable<Breed[]> {
     if (!this.cache$) {
       this.cache$ = this.fetchPage(1).pipe(

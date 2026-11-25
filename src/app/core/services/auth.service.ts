@@ -1,7 +1,9 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { Session } from '@supabase/supabase-js';
+import type { Session } from '@supabase/supabase-js';
+
+import type { Profile } from '../../models/user.model';
+
 import { SupabaseService } from './supabase.service';
-import { Profile } from '../../models/user.model';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -13,9 +15,7 @@ export class AuthService {
   readonly isLoggedIn = computed(() => this.session() !== null);
   readonly displayName = computed(
     () =>
-      this.profile()?.display_name ??
-      (this.user()?.user_metadata?.['display_name'] as string | undefined) ??
-      'Usuario'
+      this.profile()?.display_name ?? (this.user()?.user_metadata?.['display_name'] as string | undefined) ?? 'Usuario',
   );
 
   private readonly ready: Promise<void>;
@@ -24,7 +24,6 @@ export class AuthService {
     this.ready = this.init();
   }
 
-  /** Espera a que se recupere la sesión guardada (lo usan los guards) */
   whenReady(): Promise<void> {
     return this.ready;
   }
@@ -54,7 +53,7 @@ export class AuthService {
   private async loadProfile(userId: string): Promise<void> {
     const { data, error } = await this.supabase
       .from('profiles')
-      .select('id, display_name, created_at')
+      .select('id, display_name, avatar_url, bio, created_at')
       .eq('id', userId)
       .maybeSingle();
     if (!error && data) {
@@ -62,12 +61,23 @@ export class AuthService {
     }
   }
 
+  async refreshProfile(): Promise<void> {
+    const user = this.user();
+    if (user) await this.loadProfile(user.id);
+  }
+
+  async fetchProfile(userId: string): Promise<Profile> {
+    const { data, error } = await this.supabase
+      .from('profiles')
+      .select('id, display_name, avatar_url, bio, created_at')
+      .eq('id', userId)
+      .single();
+    if (error) throw new Error(this.translate(error.message));
+    return data as Profile;
+  }
+
   /** Devuelve needsConfirmation=true si Supabase exige confirmar el correo */
-  async register(
-    email: string,
-    password: string,
-    displayName: string
-  ): Promise<{ needsConfirmation: boolean }> {
+  async register(email: string, password: string, displayName: string): Promise<{ needsConfirmation: boolean }> {
     const { data, error } = await this.supabase.auth.signUp({
       email,
       password,
@@ -90,11 +100,20 @@ export class AuthService {
   async updateDisplayName(name: string): Promise<void> {
     const user = this.user();
     if (!user) throw new Error('Debes iniciar sesión.');
-    const { error } = await this.supabase
-      .from('profiles')
-      .update({ display_name: name.trim() })
-      .eq('id', user.id);
+    const { error } = await this.supabase.from('profiles').update({ display_name: name.trim() }).eq('id', user.id);
     if (error) throw new Error('No se pudo actualizar el alias.');
+    await this.loadProfile(user.id);
+  }
+
+  async updateProfile(patch: Partial<Pick<Profile, 'display_name' | 'bio' | 'avatar_url'>>): Promise<void> {
+    const user = this.user();
+    if (!user) throw new Error('Debes iniciar sesión.');
+    const values = {
+      ...patch,
+      ...(typeof patch.display_name === 'string' ? { display_name: patch.display_name.trim() } : {}),
+    };
+    const { error } = await this.supabase.from('profiles').update(values).eq('id', user.id);
+    if (error) throw new Error(this.translate(error.message));
     await this.loadProfile(user.id);
   }
 
@@ -106,10 +125,8 @@ export class AuthService {
     if (m.includes('email not confirmed')) return 'Debes confirmar tu correo antes de entrar.';
     if (m.includes('at least')) return 'La contraseña debe tener al menos 6 caracteres.';
     if (m.includes('rate limit')) return 'Demasiados intentos. Espera un momento e inténtalo de nuevo.';
-    if (m.includes('failed to fetch') || m.includes('network'))
-      return 'Sin conexión: revisa tu internet.';
-    if (m.includes('invalid email') || m.includes('unable to validate email'))
-      return 'El correo no es válido.';
+    if (m.includes('failed to fetch') || m.includes('network')) return 'Sin conexión: revisa tu internet.';
+    if (m.includes('invalid email') || m.includes('unable to validate email')) return 'El correo no es válido.';
     return 'No se pudo completar la operación: ' + message;
   }
 }

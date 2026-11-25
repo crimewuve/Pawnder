@@ -9,10 +9,6 @@ export interface WeatherInterpretation {
   label: string;
 }
 
-/**
- * Traduce el código meteorológico WMO de Open-Meteo a un emoji y una etiqueta.
- * Es solo contexto ambiental: NO indica el estado del perro.
- */
 export function interpretWeather(
   code: number,
   temperature: number,

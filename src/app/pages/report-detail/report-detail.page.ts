@@ -1,6 +1,6 @@
-import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import type { OnDestroy, OnInit } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
 import {
   IonBackButton,
   IonButton,
@@ -21,6 +21,7 @@ import {
 import {
   alertCircle,
   checkmarkCircle,
+  createOutline,
   locationOutline,
   navigateOutline,
   paw,
@@ -31,22 +32,19 @@ import {
   timeOutline,
   trashOutline,
 } from 'ionicons/icons';
+import type { Subscription } from 'rxjs';
+
 import { AuthService } from '../../core/services/auth.service';
 import { CommentsService } from '../../core/services/comments.service';
 import { ReportsService } from '../../core/services/reports.service';
 import { UiService } from '../../core/services/ui.service';
-import { formatDateTime } from '../../core/utils/format';
 import { weatherSummary } from '../../core/services/weather.service';
-import { ReportComment } from '../../models/comment.model';
-import {
-  DogReport,
-  ReportStatus,
-  STATUS_OPTIONS,
-  URGENCY_CATEGORY_OPTIONS,
-  URGENCY_LEVEL_OPTIONS,
-  labelOf,
-} from '../../models/dog-report.model';
+import { formatDateTime } from '../../core/utils/format';
+import type { ReportComment } from '../../models/comment.model';
+import type { DogReport, ReportStatus } from '../../models/dog-report.model';
+import { STATUS_OPTIONS, URGENCY_CATEGORY_OPTIONS, labelOf } from '../../models/dog-report.model';
 import { MiniMapComponent } from '../../shared/components/mini-map/mini-map.component';
+import { PhotoCarouselComponent } from '../../shared/components/photo-carousel/photo-carousel.component';
 import { WeatherIndicatorComponent } from '../../shared/components/weather-indicator/weather-indicator.component';
 
 @Component({
@@ -68,6 +66,7 @@ import { WeatherIndicatorComponent } from '../../shared/components/weather-indic
     IonSelectOption,
     IonSpinner,
     MiniMapComponent,
+    PhotoCarouselComponent,
     WeatherIndicatorComponent,
   ],
   template: `
@@ -82,7 +81,10 @@ import { WeatherIndicatorComponent } from '../../shared/components/weather-indic
             <ion-icon slot="icon-only" [icon]="shareSocialOutline"></ion-icon>
           </ion-button>
           @if (isOwner()) {
-            <ion-button color="danger" (click)="deleteReport()">
+            <ion-button (click)="editReport()" aria-label="Editar publicación">
+              <ion-icon slot="icon-only" [icon]="createOutline"></ion-icon>
+            </ion-button>
+            <ion-button color="danger" (click)="deleteReport()" aria-label="Eliminar publicación">
               <ion-icon slot="icon-only" [icon]="trashOutline"></ion-icon>
             </ion-button>
           }
@@ -105,7 +107,7 @@ import { WeatherIndicatorComponent } from '../../shared/components/weather-indic
         <div class="detail-container">
           <!-- Hero Photograph & Floating Badges -->
           <div class="hero-viewport">
-            <img [src]="r.photo_url" [alt]="r.title" />
+            <app-photo-carousel [photos]="photoUrls()" [alt]="r.title" />
 
             <!-- Unique Pawnder Tag ID -->
             <div class="floating-pawn-id">
@@ -135,14 +137,22 @@ import { WeatherIndicatorComponent } from '../../shared/components/weather-indic
           <div class="info-header">
             <h2>{{ r.title }}</h2>
 
+            <button type="button" class="report-author" (click)="openProfile(r.user_id)">
+              @if (r.profiles?.avatar_url) {
+                <img [src]="r.profiles.avatar_url" [alt]="r.profiles.display_name" />
+              } @else {
+                <span>{{ authorInitial() }}</span>
+              }
+              <b>{{ r.profiles?.display_name ?? 'Amante de perros' }}</b>
+              <small>Ver perfil</small>
+            </button>
+
             <div class="stats-pills-row">
               <span class="pawn-chip breed-chip">
                 <ion-icon [icon]="paw"></ion-icon>
                 <b>{{ r.breed }}</b>
               </span>
-              <span class="pawn-chip size-chip">
-                Tamaño: {{ r.size }}
-              </span>
+              <span class="pawn-chip size-chip"> Tamaño: {{ r.size }} </span>
               @if (r.urgency_category) {
                 <span class="pawn-chip cat-chip">
                   {{ getCategoryLabel(r.urgency_category) }}
@@ -198,7 +208,11 @@ import { WeatherIndicatorComponent } from '../../shared/components/weather-indic
               <div>
                 <h3>📍 Ubicación del hallazgo</h3>
                 <p class="hint">
-                  {{ r.is_approximate_location ? 'Zona aproximada para proteger al hogar.' : 'Punto geográfico referenciado.' }}
+                  {{
+                    r.is_approximate_location
+                      ? 'Zona aproximada para proteger al hogar.'
+                      : 'Punto geográfico referenciado.'
+                  }}
                 </p>
               </div>
             </div>
@@ -216,24 +230,26 @@ import { WeatherIndicatorComponent } from '../../shared/components/weather-indic
             </ion-button>
           </div>
 
-          <!-- Status updater (Rescue coordination) -->
-          <ion-card class="glass-card status-box">
-            <ion-card-content>
-              <h4>Estado de seguimiento</h4>
-              <p class="hint">Actualiza si el perrito ya fue rescatado o atendido.</p>
-              <ion-select
-                [value]="r.report_status"
-                (ionChange)="changeStatus($any($event).detail.value)"
-                interface="action-sheet"
-                fill="outline"
-                [disabled]="updatingStatus()"
-              >
-                @for (st of statusOptions; track st.value) {
-                  <ion-select-option [value]="st.value">{{ st.label }}</ion-select-option>
-                }
-              </ion-select>
-            </ion-card-content>
-          </ion-card>
+          <!-- Status updater (solo el autor de la publicación) -->
+          @if (isOwner()) {
+            <ion-card class="glass-card status-box">
+              <ion-card-content>
+                <h4>Estado de seguimiento</h4>
+                <p class="hint">Actualiza si el perrito ya fue rescatado o atendido.</p>
+                <ion-select
+                  [value]="r.report_status"
+                  (ionChange)="changeStatus($any($event).detail.value)"
+                  interface="action-sheet"
+                  fill="outline"
+                  [disabled]="updatingStatus()"
+                >
+                  @for (st of statusOptions; track st.value) {
+                    <ion-select-option [value]="st.value">{{ st.label }}</ion-select-option>
+                  }
+                </ion-select>
+              </ion-card-content>
+            </ion-card>
+          }
 
           <!-- Realtime Community Comments -->
           <div class="section-card comments-card">
@@ -241,18 +257,63 @@ import { WeatherIndicatorComponent } from '../../shared/components/weather-indic
             <p class="hint">Coordina ayuda, avistamientos o comparte cariño.</p>
 
             <ion-list class="comment-bubbles">
-              @for (c of comments(); track c.id) {
-                <div class="bubble-item">
-                  <div class="bubble-avatar">
-                    {{ (c.profiles?.display_name || 'U').charAt(0).toUpperCase() }}
-                  </div>
-                  <div class="bubble-content">
-                    <div class="bubble-header">
-                      <b>{{ c.profiles?.display_name ?? 'Amante de los perros' }}</b>
-                      <small>{{ formatCommentDate(c.created_at) }}</small>
+              @for (node of commentTree(); track node.comment.id) {
+                <div class="bubble-wrap" [style.margin-left.px]="indentOf(node.depth)">
+                  <div class="bubble-item" [class.is-reply]="node.depth > 0">
+                    @if (node.comment.profiles?.avatar_url) {
+                      <img
+                        class="bubble-avatar"
+                        [src]="node.comment.profiles.avatar_url"
+                        [alt]="node.comment.profiles.display_name"
+                      />
+                    } @else {
+                      <div class="bubble-avatar">{{ commentInitial(node.comment) }}</div>
+                    }
+                    <div class="bubble-content">
+                      <div class="bubble-header">
+                        <button type="button" class="comment-author" (click)="openProfile(node.comment.user_id)">
+                          <b>{{ node.comment.profiles?.display_name ?? 'Amante de los perros' }}</b>
+                        </button>
+                        <small>{{ formatCommentDate(node.comment.created_at) }}</small>
+                      </div>
+                      <p>{{ node.comment.content }}</p>
+                      @if (auth.isLoggedIn()) {
+                        <button type="button" class="reply-btn" (click)="startReply(node.comment)">Responder</button>
+                      }
                     </div>
-                    <p>{{ c.content }}</p>
                   </div>
+
+                  @if (replyTo()?.id === node.comment.id) {
+                    <div class="reply-composer">
+                      <div class="reply-context">
+                        <ion-icon [icon]="pawOutline"></ion-icon>
+                        <span>
+                          Respondiendo a <b>{{ replyAuthorName() }}</b>: «{{ replySnippet() }}»
+                        </span>
+                      </div>
+                      <ion-input
+                        placeholder="Escribe tu respuesta..."
+                        [value]="replyText()"
+                        (ionInput)="replyText.set($any($event).detail.value ?? '')"
+                        (keyup.enter)="sendReply()"
+                        [disabled]="sendingReply()"
+                      ></ion-input>
+                      <div class="reply-actions">
+                        <ion-button size="small" fill="outline" (click)="cancelReply()"> Cancelar </ion-button>
+                        <ion-button
+                          size="small"
+                          (click)="sendReply()"
+                          [disabled]="!replyText().trim() || sendingReply()"
+                        >
+                          @if (sendingReply()) {
+                            <ion-spinner name="dots"></ion-spinner>
+                          } @else {
+                            Publicar
+                          }
+                        </ion-button>
+                      </div>
+                    </div>
+                  }
                 </div>
               } @empty {
                 <div class="empty-comments">
@@ -367,8 +428,13 @@ import { WeatherIndicatorComponent } from '../../shared/components/weather-indic
         background: rgba(16, 185, 129, 0.95);
       }
       @keyframes pulse-badge {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.05); }
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
       }
 
       .status-chip {
@@ -383,9 +449,15 @@ import { WeatherIndicatorComponent } from '../../shared/components/weather-indic
         text-transform: uppercase;
         letter-spacing: 0.05em;
       }
-      .status-activo { background: #10b981; }
-      .status-en_proceso { background: #f59e0b; }
-      .status-resuelto { background: #6b7280; }
+      .status-activo {
+        background: #10b981;
+      }
+      .status-en_proceso {
+        background: #f59e0b;
+      }
+      .status-resuelto {
+        background: #6b7280;
+      }
 
       /* Info Header */
       .info-header {
@@ -397,6 +469,42 @@ import { WeatherIndicatorComponent } from '../../shared/components/weather-indic
         font-weight: 800;
         color: #111827;
         line-height: 1.25;
+      }
+
+      .report-author {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 0 12px;
+        padding: 4px 12px 4px 4px;
+        border: 1px solid #e5e7eb;
+        border-radius: 999px;
+        background: #ffffff;
+        color: #374151;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 0.82rem;
+      }
+      .report-author:hover {
+        border-color: #a7f3d0;
+        background: #ecfdf5;
+      }
+      .report-author img,
+      .report-author span {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: #d1fae5;
+        color: #065f46;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .report-author small {
+        color: #059669;
+        font-size: 0.7rem;
       }
 
       .stats-pills-row {
@@ -524,12 +632,19 @@ import { WeatherIndicatorComponent } from '../../shared/components/weather-indic
         gap: 10px;
         margin-bottom: 16px;
       }
+      .bubble-wrap {
+        min-width: 0;
+      }
       .bubble-item {
         display: flex;
         gap: 10px;
         background: #f9fafb;
         border-radius: 16px;
         padding: 12px;
+      }
+      .bubble-item.is-reply {
+        background: #ecfdf5;
+        border-left: 3px solid #a7f3d0;
       }
       .bubble-avatar {
         width: 32px;
@@ -542,6 +657,7 @@ import { WeatherIndicatorComponent } from '../../shared/components/weather-indic
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
+        object-fit: cover;
       }
       .bubble-content {
         flex: 1;
@@ -558,12 +674,72 @@ import { WeatherIndicatorComponent } from '../../shared/components/weather-indic
       .bubble-header small {
         color: #9ca3af;
         font-family: var(--pw-font-mono);
+        white-space: nowrap;
+      }
+      .comment-author {
+        background: transparent;
+        border: 0;
+        padding: 0;
+        color: #111827;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: inherit;
+      }
+      .comment-author:hover b {
+        color: #059669;
+        text-decoration: underline;
       }
       .bubble-content p {
         margin: 0;
         font-size: 0.88rem;
         color: #374151;
         line-height: 1.4;
+        white-space: pre-line;
+      }
+      .reply-btn {
+        margin-top: 6px;
+        background: transparent;
+        border: 0;
+        padding: 2px 0;
+        color: #059669;
+        font-family: inherit;
+        font-size: 0.75rem;
+        font-weight: 800;
+        cursor: pointer;
+      }
+      .reply-btn:hover {
+        text-decoration: underline;
+      }
+      .reply-composer {
+        margin: 6px 0 4px 42px;
+        background: #ffffff;
+        border: 1px solid #a7f3d0;
+        border-radius: 14px;
+        padding: 10px 12px;
+        box-shadow: 0 2px 8px rgba(5, 150, 105, 0.08);
+      }
+      .reply-context {
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+        background: #ecfdf5;
+        border-radius: 10px;
+        padding: 6px 8px;
+        margin-bottom: 8px;
+        color: #065f46;
+        font-size: 0.74rem;
+        line-height: 1.35;
+      }
+      .reply-context ion-icon {
+        font-size: 13px;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .reply-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 6px;
+        margin-top: 6px;
       }
       .empty-comments {
         text-align: center;
@@ -594,7 +770,7 @@ export class ReportDetailPage implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly reportsService = inject(ReportsService);
   private readonly commentsService = inject(CommentsService);
-  private readonly auth = inject(AuthService);
+  protected readonly auth = inject(AuthService);
   private readonly ui = inject(UiService);
 
   protected readonly shareSocialOutline = shareSocialOutline;
@@ -608,6 +784,7 @@ export class ReportDetailPage implements OnInit, OnDestroy {
   protected readonly navigateOutline = navigateOutline;
   protected readonly shieldCheckmarkOutline = shieldCheckmarkOutline;
   protected readonly send = send;
+  protected readonly createOutline = createOutline;
 
   protected readonly reportId = signal<string>('');
   protected readonly report = signal<DogReport | null>(null);
@@ -617,6 +794,9 @@ export class ReportDetailPage implements OnInit, OnDestroy {
   protected readonly updatingStatus = signal(false);
   protected readonly newComment = signal('');
   protected readonly sendingComment = signal(false);
+  protected readonly replyTo = signal<ReportComment | null>(null);
+  protected readonly replyText = signal('');
+  protected readonly sendingReply = signal(false);
 
   protected readonly statusOptions = STATUS_OPTIONS;
 
@@ -632,6 +812,51 @@ export class ReportDetailPage implements OnInit, OnDestroy {
     const user = this.auth.user();
     const rep = this.report();
     return !!(user && rep && user.id === rep.user_id);
+  });
+
+  protected readonly photoUrls = computed(() => {
+    const rep = this.report();
+    if (!rep) return [];
+    const urls = rep.photos?.map((p) => p.photo_url).filter(Boolean) ?? [];
+    return urls.length ? urls : [rep.photo_url].filter(Boolean);
+  });
+
+  protected readonly authorInitial = computed(() => {
+    const name = this.report()?.profiles?.display_name ?? 'U';
+    return name.charAt(0).toUpperCase();
+  });
+
+  /** Aplana el árbol de respuestas para poder indentar cada nivel sin recursión en la plantilla. */
+  protected readonly commentTree = computed(() => {
+    const items = [...this.comments()];
+    const byId = new Map(items.map((c) => [c.id, c]));
+    const result: { comment: ReportComment; depth: number }[] = [];
+    const visited = new Set<string>();
+
+    const walk = (comment: ReportComment, depth: number): void => {
+      if (visited.has(comment.id)) return;
+      visited.add(comment.id);
+      result.push({ comment, depth });
+      items
+        .filter((child) => child.parent_id === comment.id)
+        .sort((a, b) => a.created_at.localeCompare(b.created_at))
+        .forEach((child) => walk(child, depth + 1));
+    };
+
+    items
+      .filter((c) => !c.parent_id || !byId.has(c.parent_id))
+      .sort((a, b) => a.created_at.localeCompare(b.created_at))
+      .forEach((root) => walk(root, 0));
+
+    items.filter((c) => !visited.has(c.id)).forEach((c) => result.push({ comment: c, depth: 0 }));
+    return result;
+  });
+
+  protected readonly replyAuthorName = computed(() => this.replyTo()?.profiles?.display_name ?? 'Amante de los perros');
+
+  protected readonly replySnippet = computed(() => {
+    const text = this.replyTo()?.content?.trim() ?? '';
+    return text.length > 60 ? `${text.slice(0, 60)}…` : text;
   });
 
   protected readonly formattedDate = computed(() => {
@@ -652,6 +877,7 @@ export class ReportDetailPage implements OnInit, OnDestroy {
   });
 
   async ngOnInit(): Promise<void> {
+    await this.auth.whenReady();
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
       this.errorMsg.set('ID de reporte no válido.');
@@ -706,6 +932,59 @@ export class ReportDetailPage implements OnInit, OnDestroy {
 
   formatCommentDate(dateIso: string): string {
     return formatDateTime(dateIso);
+  }
+
+  indentOf(depth: number): number {
+    return Math.min(depth, 5) * 22;
+  }
+
+  commentInitial(comment: ReportComment): string {
+    return (comment.profiles?.display_name || 'U').charAt(0).toUpperCase();
+  }
+
+  openProfile(userId: string): void {
+    const current = this.auth.user()?.id;
+    void this.router.navigateByUrl(userId === current ? '/profile' : `/profile/${userId}`);
+  }
+
+  startReply(comment: ReportComment): void {
+    if (!this.auth.user()) {
+      void this.ui.toast('Inicia sesión para responder.', 'warning');
+      void this.router.navigateByUrl('/login');
+      return;
+    }
+    this.replyTo.set(comment);
+    this.replyText.set('');
+  }
+
+  cancelReply(): void {
+    this.replyTo.set(null);
+    this.replyText.set('');
+  }
+
+  async sendReply(): Promise<void> {
+    const text = this.replyText().trim();
+    const parent = this.replyTo();
+    const user = this.auth.user();
+    if (!text || !parent || !user) return;
+
+    this.sendingReply.set(true);
+    try {
+      await this.commentsService.addComment(this.reportId(), user.id, text, parent.id);
+      this.cancelReply();
+      await this.loadComments();
+      void this.ui.toast('Respuesta publicada ✔', 'success');
+    } catch {
+      void this.ui.toast('No se pudo publicar la respuesta.', 'danger');
+    } finally {
+      this.sendingReply.set(false);
+    }
+  }
+
+  editReport(): void {
+    const rep = this.report();
+    if (!rep || !this.isOwner()) return;
+    void this.router.navigateByUrl(`/edit-report/${rep.id}`);
   }
 
   async changeStatus(newStatus: ReportStatus): Promise<void> {
@@ -775,16 +1054,20 @@ export class ReportDetailPage implements OnInit, OnDestroy {
 
   async deleteReport(): Promise<void> {
     const rep = this.report();
-    if (!rep) return;
-    const confirmed = confirm('¿Estás seguro de que deseas eliminar esta publicación?');
+    if (!rep || !this.isOwner()) return;
+    const confirmed = await this.ui.confirm(
+      'Eliminar publicación',
+      '¿Eliminar esta publicación? Sus fotos y comentarios también se borrarán.',
+      'Eliminar',
+    );
     if (!confirmed) return;
 
     try {
       await this.reportsService.remove(rep);
-      void this.ui.toast('Reporte eliminado.', 'success');
-      void this.router.navigateByUrl('/home');
+      void this.ui.toast('Publicación eliminada.', 'success');
+      void this.router.navigateByUrl('/profile');
     } catch {
-      void this.ui.toast('No se pudo eliminar el reporte.', 'danger');
+      void this.ui.toast('No se pudo eliminar la publicación.', 'danger');
     }
   }
 }

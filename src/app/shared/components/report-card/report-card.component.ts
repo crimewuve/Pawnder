@@ -3,10 +3,12 @@ import { IonCard, IonCardContent, IonIcon } from '@ionic/angular';
 import {
   alertCircle,
   chatbubbleEllipsesOutline,
+  createOutline,
   locationOutline,
   pawOutline,
   shieldCheckmarkOutline,
   timeOutline,
+  trashOutline,
 } from 'ionicons/icons';
 
 import { weatherSummary } from '../../../core/services/weather.service';
@@ -18,11 +20,12 @@ import {
   URGENCY_LEVEL_OPTIONS,
   labelOf,
 } from '../../../models/dog-report.model';
+import { PhotoCarouselComponent } from '../photo-carousel/photo-carousel.component';
 import { WeatherIndicatorComponent } from '../weather-indicator/weather-indicator.component';
 
 @Component({
   selector: 'app-report-card',
-  imports: [IonCard, IonCardContent, IonIcon, WeatherIndicatorComponent],
+  imports: [IonCard, IonCardContent, IonIcon, PhotoCarouselComponent, WeatherIndicatorComponent],
   template: `
     <ion-card
       class="paw-card"
@@ -34,7 +37,7 @@ import { WeatherIndicatorComponent } from '../weather-indicator/weather-indicato
     >
       <!-- Top Frame / Photography -->
       <div class="photo-wrapper">
-        <img [src]="report().photo_url" [alt]="report().title" loading="lazy" />
+        <app-photo-carousel [photos]="photoUrls()" [alt]="report().title" />
 
         <!-- Pawnder ID Tag -->
         <div class="pawn-tag">
@@ -106,13 +109,39 @@ import { WeatherIndicatorComponent } from '../weather-indicator/weather-indicato
 
         <!-- Footer: Social author & comments -->
         <div class="card-footer">
-          <div class="author-info">
-            <div class="author-avatar">{{ authorInitial() }}</div>
-            <span>{{ report().profiles?.display_name ?? 'Amante de perros' }}</span>
-          </div>
-          <div class="comments-count">
-            <ion-icon [icon]="chatbubbleEllipsesOutline"></ion-icon>
-            <span>{{ comments() }}</span>
+          <button
+            type="button"
+            class="author-info"
+            (click)="openAuthor($event)"
+            [attr.aria-label]="'Ver perfil de ' + authorName()"
+          >
+            @if (authorAvatar()) {
+              <img class="author-avatar" [src]="authorAvatar()" [alt]="authorName()" />
+            } @else {
+              <div class="author-avatar">{{ authorInitial() }}</div>
+            }
+            <span>{{ authorName() }}</span>
+          </button>
+          <div class="footer-right">
+            <div class="comments-count">
+              <ion-icon [icon]="chatbubbleEllipsesOutline"></ion-icon>
+              <span>{{ comments() }}</span>
+            </div>
+            @if (showActions()) {
+              <div class="owner-actions">
+                <button type="button" class="action-btn" aria-label="Editar publicación" (click)="editReport($event)">
+                  <ion-icon [icon]="createOutline"></ion-icon>
+                </button>
+                <button
+                  type="button"
+                  class="action-btn danger"
+                  aria-label="Eliminar publicación"
+                  (click)="deleteReport($event)"
+                >
+                  <ion-icon [icon]="trashOutline"></ion-icon>
+                </button>
+              </div>
+            }
           </div>
         </div>
       </ion-card-content>
@@ -121,11 +150,11 @@ import { WeatherIndicatorComponent } from '../weather-indicator/weather-indicato
   styles: [
     `
       .paw-card {
-        margin: 10px 0;
+        margin: 12px 0;
         border-radius: 24px;
         background: #ffffff;
-        box-shadow: var(--pw-shadow-soft);
-        border: 1px solid rgba(229, 231, 235, 0.8);
+        box-shadow: 0 4px 18px -2px rgba(19, 78, 63, 0.07), 0 2px 6px -1px rgba(0, 0, 0, 0.03);
+        border: 1px solid rgba(215, 232, 225, 0.85);
         overflow: hidden;
         transition:
           transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
@@ -134,22 +163,285 @@ import { WeatherIndicatorComponent } from '../weather-indicator/weather-indicato
       }
       .paw-card:hover {
         transform: translateY(-3px);
-        box-shadow: var(--pw-shadow-hover);
+        box-shadow: 0 10px 25px -4px rgba(19, 78, 63, 0.12);
+        border-color: #75D6B3;
       }
       .paw-card:active {
-        transform: scale(0.98);
+        transform: scale(0.985);
       }
       .paw-card.card-critical {
         border: 2px solid #ef4444;
-        box-shadow: 0 8px 26px -3px rgba(239, 68, 68, 0.25);
+        box-shadow: 0 8px 24px -3px rgba(239, 68, 68, 0.22);
       }
       .paw-card.card-high {
-        border: 2px solid #f97316;
-        box-shadow: 0 6px 20px -3px rgba(249, 115, 22, 0.2);
+        border: 2px solid #f59e0b;
+        box-shadow: 0 6px 20px -3px rgba(245, 158, 11, 0.18);
       }
       .paw-card.card-resolved {
-        opacity: 0.68;
-        filter: grayscale(0.4);
+        opacity: 0.7;
+        filter: grayscale(0.2);
+      }
+
+      /* Photo area */
+      .photo-wrapper {
+        position: relative;
+        width: 100%;
+        height: 240px;
+        background: #eef7f3;
+        overflow: hidden;
+      }
+
+      .pawn-tag {
+        position: absolute;
+        bottom: 12px;
+        left: 12px;
+        background: rgba(19, 78, 63, 0.88);
+        backdrop-filter: blur(8px);
+        color: #ffffff;
+        font-family: var(--pw-font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        z-index: 10;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+      }
+      .pawn-tag ion-icon {
+        color: #75D6B3;
+        font-size: 13px;
+      }
+
+      .pill-badge {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        padding: 5px 12px;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        z-index: 10;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+      }
+      .pill-alert {
+        background: #f59e0b;
+      }
+      .pill-alert.alert-crit {
+        background: #ef4444;
+        animation: pulse-soft 1.8s infinite;
+      }
+      .pill-pet {
+        background: #134e3f;
+        color: #75D6B3;
+      }
+      .pill-badge ion-icon {
+        font-size: 13px;
+      }
+
+      .status-pill {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        z-index: 10;
+        color: #ffffff;
+      }
+      .status-activo {
+        background: #75D6B3;
+        color: #134e3f;
+      }
+      .status-en_proceso {
+        background: #f59e0b;
+        color: #ffffff;
+      }
+      .status-resuelto {
+        background: #64748b;
+        color: #ffffff;
+      }
+
+      /* Body */
+      .card-body {
+        padding: 16px 18px;
+      }
+      .headline-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+      .title {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #134e3f;
+        line-height: 1.3;
+      }
+
+      .stats-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 10px;
+      }
+      .stat-chip {
+        font-size: 0.78rem;
+        padding: 3px 10px;
+        border-radius: 8px;
+        font-weight: 600;
+      }
+      .breed-chip {
+        background: #eafaf4;
+        color: #134e3f;
+        border: 1px solid #c2ebd9;
+      }
+      .size-chip {
+        background: #f4efe6;
+        color: #5c4d3c;
+      }
+      .cat-chip {
+        background: #fff3e6;
+        color: #c25e00;
+      }
+
+      .description {
+        margin: 0 0 12px;
+        font-size: 0.92rem;
+        color: #4b6358;
+        line-height: 1.45;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-bottom: 10px;
+        font-size: 0.8rem;
+        color: #7d968b;
+      }
+      .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .meta-item ion-icon {
+        color: #75D6B3;
+        font-size: 15px;
+      }
+      .approx-tag {
+        color: #9ca3af;
+        font-style: italic;
+      }
+
+      .weather-row {
+        margin-bottom: 12px;
+      }
+
+      /* Card Footer */
+      .card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid #f0f5f2;
+        padding-top: 12px;
+        margin-top: 4px;
+      }
+      .author-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: transparent;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: #134e3f;
+      }
+      .author-avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: #eafaf4;
+        color: #134e3f;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 0.85rem;
+        border: 2px solid #75D6B3;
+      }
+      .footer-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .comments-count {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.82rem;
+        color: #7d968b;
+        font-weight: 700;
+      }
+      .comments-count ion-icon {
+        font-size: 15px;
+        color: #75D6B3;
+      }
+      .owner-actions {
+        display: flex;
+        gap: 6px;
+      }
+      .action-btn {
+        background: #f4efe6;
+        border: none;
+        border-radius: 8px;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #4b6358;
+        transition: background 0.15s ease;
+      }
+      .action-btn:hover {
+        background: #eafaf4;
+        color: #134e3f;
+      }
+      .action-btn.danger {
+        color: #ef4444;
+      }
+      .action-btn.danger:hover {
+        background: #fee2e2;
+      }
+
+      @keyframes pulse-soft {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.04);
+        }
       }
 
       /* Photo Viewport */
@@ -348,6 +640,16 @@ import { WeatherIndicatorComponent } from '../weather-indicator/weather-indicato
         gap: 8px;
         color: #4b5563;
         font-weight: 600;
+        background: transparent;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: inherit;
+      }
+      .author-info:hover span {
+        color: #059669;
+        text-decoration: underline;
       }
       .author-avatar {
         width: 24px;
@@ -360,6 +662,39 @@ import { WeatherIndicatorComponent } from '../weather-indicator/weather-indicato
         display: flex;
         align-items: center;
         justify-content: center;
+        object-fit: cover;
+        flex-shrink: 0;
+      }
+      .footer-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .owner-actions {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .action-btn {
+        width: 26px;
+        height: 26px;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        background: #f9fafb;
+        color: #6b7280;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .action-btn:hover {
+        color: #059669;
+        border-color: #a7f3d0;
+      }
+      .action-btn.danger:hover {
+        color: #ef4444;
+        border-color: #fecaca;
       }
       .comments-count {
         display: flex;
@@ -378,14 +713,30 @@ import { WeatherIndicatorComponent } from '../weather-indicator/weather-indicato
 })
 export class ReportCardComponent {
   readonly report = input.required<DogReport>();
+  readonly showActions = input(false);
   readonly open = output<string>();
+  readonly edit = output<string>();
+  readonly delete = output<string>();
+  readonly author = output<string>();
 
   protected readonly locationOutline = locationOutline;
   protected readonly timeOutline = timeOutline;
   protected readonly chatbubbleEllipsesOutline = chatbubbleEllipsesOutline;
+  protected readonly createOutline = createOutline;
+  protected readonly trashOutline = trashOutline;
   protected readonly pawOutline = pawOutline;
   protected readonly alertCircle = alertCircle;
   protected readonly shieldCheckmarkOutline = shieldCheckmarkOutline;
+
+  protected readonly photoUrls = computed(() => {
+    const report = this.report();
+    const urls = report.photos?.map((p) => p.photo_url).filter(Boolean) ?? [];
+    return urls.length ? urls : [report.photo_url].filter(Boolean);
+  });
+
+  protected readonly authorName = computed(() => this.report().profiles?.display_name ?? 'Amante de perros');
+
+  protected readonly authorAvatar = computed(() => this.report().profiles?.avatar_url ?? null);
 
   protected readonly pawnId = computed(() => {
     const idStr = this.report().id || '';
@@ -423,4 +774,19 @@ export class ReportCardComponent {
   });
 
   protected readonly comments = computed(() => this.report().report_comments?.[0]?.count ?? 0);
+
+  protected openAuthor(event: Event): void {
+    event.stopPropagation();
+    this.author.emit(this.report().user_id);
+  }
+
+  protected editReport(event: Event): void {
+    event.stopPropagation();
+    this.edit.emit(this.report().id);
+  }
+
+  protected deleteReport(event: Event): void {
+    event.stopPropagation();
+    this.delete.emit(this.report().id);
+  }
 }

@@ -113,7 +113,7 @@ import { EMAIL_RE } from '../../core/utils/validators';
   styles: [
     `
       .auth-content {
-        --background: linear-gradient(180deg, #faf6f0 0%, #f3ede2 100%);
+        --background: linear-gradient(180deg, #faf8f5 0%, #edf7f3 100%);
       }
       .auth-wrap {
         padding: 24px 20px 40px;
@@ -130,28 +130,29 @@ import { EMAIL_RE } from '../../core/utils/validators';
         align-items: center;
         gap: 6px;
         background: #ffffff;
-        border: 1px solid rgba(229, 231, 235, 0.9);
+        border: 1px solid rgba(19, 78, 63, 0.15);
         padding: 6px 14px;
         border-radius: 999px;
-        color: #4b5563;
+        color: #134e3f;
         font-weight: 700;
         font-size: 0.8rem;
         cursor: pointer;
         margin-bottom: 20px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+        box-shadow: 0 2px 6px rgba(19, 78, 63, 0.05);
       }
       .brand-hero {
         text-align: center;
         margin-bottom: 22px;
       }
       .logo-box {
-        width: 76px;
-        height: 76px;
+        width: 80px;
+        height: 80px;
         margin: 0 auto 12px;
         border-radius: 26px;
         background: #ffffff;
         overflow: hidden;
-        box-shadow: 0 10px 24px rgba(16, 185, 129, 0.2);
+        box-shadow: 0 10px 24px rgba(19, 78, 63, 0.12);
+        border: 2px solid #75D6B3;
       }
       .logo-box img {
         width: 100%;

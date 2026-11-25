@@ -1,4 +1,5 @@
 import type { Routes } from '@angular/router';
+
 import { authGuard, guestGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
@@ -31,14 +32,27 @@ export const routes: Routes = [
   },
   {
     path: 'report-detail/:id',
-    loadComponent: () =>
-      import('./pages/report-detail/report-detail.page').then((m) => m.ReportDetailPage),
+    loadComponent: () => import('./pages/report-detail/report-detail.page').then((m) => m.ReportDetailPage),
   },
   {
     path: 'create-report',
     canActivate: [authGuard],
-    loadComponent: () =>
-      import('./pages/create-report/create-report.page').then((m) => m.CreateReportPage),
+    loadComponent: () => import('./pages/create-report/create-report.page').then((m) => m.CreateReportPage),
+  },
+  {
+    path: 'edit-report/:id',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/edit-report/edit-report.page').then((m) => m.EditReportPage),
+  },
+  {
+    path: 'profile',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/profile/profile.page').then((m) => m.ProfilePage),
+  },
+  {
+    path: 'profile/:userId',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/profile/profile.page').then((m) => m.ProfilePage),
   },
   { path: '**', redirectTo: 'splash' },
 ];

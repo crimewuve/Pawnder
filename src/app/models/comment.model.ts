@@ -4,5 +4,6 @@ export interface ReportComment {
   user_id: string;
   content: string;
   created_at: string;
-  profiles?: { display_name: string } | null;
+  parent_id: string | null;
+  profiles?: { display_name: string; avatar_url: string | null } | null;
 }

@@ -12,7 +12,6 @@ interface NominatimResponse {
   address?: Record<string, string>;
 }
 
-/** Geocodificación inversa con Nominatim (OpenStreetMap). Uso ligero: 1 consulta por ubicación. */
 @Injectable({ providedIn: 'root' })
 export class GeocodingService {
   private readonly http = inject(HttpClient);

@@ -9,6 +9,7 @@ import {
   logInOutline,
   logOutOutline,
   mapOutline,
+  personOutline,
   sparkles,
 } from 'ionicons/icons';
 
@@ -27,8 +28,10 @@ import { UiService } from '../../core/services/ui.service';
         </div>
         <div slot="end" class="auth-btn">
           @if (auth.isLoggedIn()) {
-            <ion-button fill="clear" color="dark" class="user-chip" (click)="logout()">
+            <ion-button fill="clear" color="dark" class="user-chip" (click)="goTo('/profile')">
               <div class="user-avatar">{{ auth.displayName().charAt(0).toUpperCase() }}</div>
+            </ion-button>
+            <ion-button fill="clear" color="dark" class="logout-chip" aria-label="Cerrar sesión" (click)="logout()">
               <ion-icon slot="icon-only" [icon]="logOutOutline"></ion-icon>
             </ion-button>
           } @else {
@@ -133,6 +136,30 @@ import { UiService } from '../../core/services/ui.service';
             </div>
             <ion-icon [icon]="chevronForwardOutline" class="arrow-icon"></ion-icon>
           </div>
+
+          <!-- 4. MI PERFIL -->
+          @if (auth.isLoggedIn()) {
+            <div
+              class="menu-card profile-card"
+              role="button"
+              tabindex="0"
+              (click)="goTo('/profile')"
+              (keydown.enter)="goTo('/profile')"
+              (keydown.space)="goTo('/profile')"
+            >
+              <div class="card-icon profile-icon">
+                <ion-icon [icon]="personOutline"></ion-icon>
+              </div>
+              <div class="card-info">
+                <div class="card-header-row">
+                  <h3>Mi perfil</h3>
+                  <span class="badge-accent green-accent">Tu espacio</span>
+                </div>
+                <p>Tu foto, tu biografía y todas tus publicaciones en un solo lugar.</p>
+              </div>
+              <ion-icon [icon]="chevronForwardOutline" class="arrow-icon"></ion-icon>
+            </div>
+          }
         </div>
 
         <!-- Micro-footer -->
@@ -185,6 +212,11 @@ import { UiService } from '../../core/services/ui.service';
         align-items: center;
         justify-content: center;
         margin-right: 6px;
+      }
+      .logout-chip {
+        --padding-start: 0;
+        --padding-end: 10px;
+        font-size: 1.05rem;
       }
 
       .menu-content {
@@ -334,6 +366,10 @@ import { UiService } from '../../core/services/ui.service';
         background: #eff6ff;
         color: #2563eb;
       }
+      .profile-icon {
+        background: #fdf4ff;
+        color: #a21caf;
+      }
 
       .card-info {
         flex: 1;
@@ -404,6 +440,7 @@ export class MainMenuPage {
   private readonly ui = inject(UiService);
 
   protected readonly mapOutline = mapOutline;
+  protected readonly personOutline = personOutline;
   protected readonly addCircleOutline = addCircleOutline;
   protected readonly bookOutline = bookOutline;
   protected readonly logInOutline = logInOutline;

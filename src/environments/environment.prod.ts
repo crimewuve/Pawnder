@@ -7,6 +7,7 @@ export const environment = {
   supabaseUrl: 'https://jvxhggxdwcrhgkjuvxjk.supabase.co',
   supabaseAnonKey: 'sb_publishable_Bj4Q5ubcQWzFeM-XbpqY0g_GX_nR5xO',
   storageBucket: 'dog-photos',
+  avatarBucket: 'avatars',
 };
 
 /*
@@ -17,4 +18,3 @@ export const environment = {
  * on performance if an error is thrown.
  */
 // import 'zone.js/plugins/zone-error';  // Included with Angular CLI.
-

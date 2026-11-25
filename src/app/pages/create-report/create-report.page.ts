@@ -33,6 +33,7 @@ import {
   checkmarkCircle,
   imagesOutline,
   locationOutline,
+  pawOutline,
   refreshOutline,
   shieldCheckmarkOutline,
   sparkles,
@@ -56,7 +57,7 @@ import { WeatherService, weatherSummary } from '../../core/services/weather.serv
 import { toLocalInput } from '../../core/utils/format';
 import { HardwareError } from '../../core/utils/hardware-error';
 import type { Breed } from '../../models/breed.model';
-import type { DogSize, NewDogReport, UrgencyCategory, UrgencyLevel } from '../../models/dog-report.model';
+import type { DogIdentity, DogSize, NewDogReport, UrgencyCategory, UrgencyLevel } from '../../models/dog-report.model';
 import { SIZE_OPTIONS, URGENCY_CATEGORY_OPTIONS, URGENCY_LEVEL_OPTIONS } from '../../models/dog-report.model';
 import type { WeatherSnapshot } from '../../models/weather.model';
 import { MiniMapComponent } from '../../shared/components/mini-map/mini-map.component';
@@ -188,6 +189,57 @@ interface BreedSuggestion {
 
       <!-- 3. DATOS DEL PERRO -->
       <h3>2. Datos del perro</h3>
+
+      <div class="dog-identity-card">
+        <div class="dog-identity-head">
+          <ion-icon [icon]="pawOutline"></ion-icon>
+          <div>
+            <h4>¿Ya conoces a este perro?</h4>
+            <p>Agrupa reportes solo si estás seguro de que es el mismo. Si dudas, déjalo independiente.</p>
+          </div>
+        </div>
+        <ion-segment [value]="dogMode()" (ionChange)="setDogMode($any($event).detail.value)">
+          <ion-segment-button value="new"><ion-label>Nuevo</ion-label></ion-segment-button>
+          <ion-segment-button value="existing"><ion-label>Existente</ion-label></ion-segment-button>
+          <ion-segment-button value="ungrouped"><ion-label>No estoy seguro</ion-label></ion-segment-button>
+        </ion-segment>
+
+        @if (dogMode() === 'new') {
+          <ion-input
+            class="gap"
+            label="Nombre del perro (opcional)"
+            labelPlacement="floating"
+            fill="outline"
+            maxlength="40"
+            placeholder="Ej: Toby"
+            [value]="dogName()"
+            (ionInput)="dogName.set($any($event).detail.value ?? '')"
+          ></ion-input>
+        } @else if (dogMode() === 'existing') {
+          @if (selectedDog(); as dog) {
+            <div class="selected-dog">
+              @if (dog.photo_url) {
+                <img [src]="dog.photo_url" alt="Foto del perro" />
+              }
+              <div>
+                <b>{{ dog.name || 'Perrito sin nombre' }}</b>
+                <p>ID {{ dog.id.slice(0, 8) }} · {{ dog.breed || 'Raza desconocida' }}</p>
+              </div>
+            </div>
+            <ion-button size="small" fill="outline" (click)="openDogPicker()">Cambiar perro</ion-button>
+          } @else {
+            <ion-button class="gap" expand="block" fill="outline" (click)="openDogPicker()">
+              Buscar perro existente
+            </ion-button>
+          }
+        } @else {
+          <p class="pw-hint">Se publicará como un reporte independiente, sin mezclarlo con otros perros.</p>
+        }
+        @if (dogError()) {
+          <p class="pw-error">{{ dogError() }}</p>
+        }
+      </div>
+
       <ion-input
         [class.pw-invalid]="titleError()"
         label="Título del reporte"
@@ -546,6 +598,68 @@ interface BreedSuggestion {
         </ion-content>
       </ng-template>
     </ion-modal>
+
+    <!-- MODAL DE PERROS EXISTENTES -->
+    <ion-modal [isOpen]="dogPickerOpen()" (didDismiss)="onDogPickerDismiss()">
+      <ng-template>
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>Buscar perro existente</ion-title>
+            <ion-buttons slot="end">
+              <ion-button (click)="onDogPickerDismiss()">Cerrar</ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+          <ion-toolbar>
+            <ion-searchbar
+              placeholder="Buscar por nombre o raza…"
+              [debounce]="300"
+              (ionInput)="onDogQuery($any($event).detail.value ?? '')"
+            ></ion-searchbar>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content class="pw-form">
+          @if (dogSearchLoading()) {
+            <div class="center pw-loading"><ion-spinner name="crescent"></ion-spinner> Buscando perros…</div>
+          } @else if (dogSearchError()) {
+            <div class="center">
+              <p class="pw-error">{{ dogSearchError() }}</p>
+              <ion-button (click)="searchDogs()">Reintentar</ion-button>
+            </div>
+          } @else {
+            <ion-list>
+              @for (dog of dogSearchResults(); track dog.id) {
+                <ion-item button (click)="previewDog(dog)">
+                  @if (dog.photo_url) {
+                    <img class="dog-result-photo" [src]="dog.photo_url" alt="Foto del perro" slot="start" />
+                  }
+                  <ion-label>
+                    <h3>{{ dog.name || 'Perrito sin nombre' }}</h3>
+                    <p>ID {{ dog.id.slice(0, 8) }} · {{ dog.breed || 'Raza desconocida' }}</p>
+                  </ion-label>
+                </ion-item>
+              } @empty {
+                <p class="center">No se encontraron perros con ese nombre o raza.</p>
+              }
+            </ion-list>
+          }
+
+          @if (dogPreview(); as dog) {
+            <div class="dog-preview">
+              @if (dog.photo_url) {
+                <img [src]="dog.photo_url" alt="Vista previa del perro" />
+              }
+              <h4>{{ dog.name || 'Perrito sin nombre' }}</h4>
+              <p>ID {{ dog.id.slice(0, 8) }} · {{ dog.breed || 'Raza desconocida' }}</p>
+              <p class="pw-hint">Confirma que es el mismo perro antes de vincular tu reporte.</p>
+              <div class="photo-actions">
+                <ion-button size="small" (click)="confirmDog(dog)">Usar este perro</ion-button>
+                <ion-button size="small" fill="outline" (click)="dogPreview.set(null)">Cancelar</ion-button>
+              </div>
+            </div>
+          }
+        </ion-content>
+      </ng-template>
+    </ion-modal>
   `,
   styles: [
     `
@@ -601,6 +715,77 @@ interface BreedSuggestion {
         font-size: 0.78rem;
         color: #7a726a;
         max-width: 220px;
+      }
+      .dog-identity-card {
+        background: #f2fbf7;
+        border: 1px solid #c8ede0;
+        border-radius: var(--pw-card-radius);
+        padding: 12px;
+        margin-bottom: 14px;
+      }
+      .dog-identity-head {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        margin-bottom: 10px;
+      }
+      .dog-identity-head ion-icon {
+        font-size: 24px;
+        color: #1b8a6b;
+        flex-shrink: 0;
+      }
+      .dog-identity-head h4 {
+        margin: 0;
+        font-size: 0.92rem;
+        color: #1b6b53;
+      }
+      .dog-identity-head p {
+        margin: 2px 0 0;
+        font-size: 0.76rem;
+        color: #7a726a;
+      }
+      .selected-dog,
+      .dog-preview {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 10px 0;
+        padding: 8px;
+        background: #fff;
+        border: 1px solid #d8efe5;
+        border-radius: 12px;
+      }
+      .selected-dog img,
+      .dog-preview img,
+      .dog-result-photo {
+        width: 52px;
+        height: 52px;
+        object-fit: cover;
+        border-radius: 10px;
+        flex-shrink: 0;
+      }
+      .selected-dog b,
+      .dog-preview h4 {
+        margin: 0;
+        font-size: 0.9rem;
+        color: #2f2a26;
+      }
+      .selected-dog p,
+      .dog-preview p {
+        margin: 2px 0;
+        font-size: 0.76rem;
+        color: #7a726a;
+      }
+      .dog-preview {
+        display: block;
+        text-align: center;
+      }
+      .dog-preview img {
+        width: 100%;
+        height: 140px;
+      }
+      .dog-result-photo {
+        margin-right: 10px;
       }
       .privacy-card {
         background: #f2fbf7;
@@ -856,6 +1041,7 @@ export class CreateReportPage implements OnInit {
   protected readonly sparkles = sparkles;
   protected readonly alertCircle = alertCircle;
   protected readonly shieldCheckmarkOutline = shieldCheckmarkOutline;
+  protected readonly pawOutline = pawOutline;
   protected readonly sizeOptions = SIZE_OPTIONS;
   protected readonly levelOptions = URGENCY_LEVEL_OPTIONS;
   protected readonly categoryOptions = URGENCY_CATEGORY_OPTIONS;
@@ -921,7 +1107,23 @@ export class CreateReportPage implements OnInit {
   protected readonly submitted = signal(false);
   protected readonly publishing = signal(false);
 
+  // Identidad explícita del perro (nunca se infiere de fotos ni GPS)
+  protected readonly dogMode = signal<'new' | 'existing' | 'ungrouped'>('new');
+  protected readonly dogName = signal('');
+  protected readonly selectedDog = signal<DogIdentity | null>(null);
+  protected readonly dogPickerOpen = signal(false);
+  protected readonly dogQuery = signal('');
+  protected readonly dogSearchResults = signal<DogIdentity[]>([]);
+  protected readonly dogSearchLoading = signal(false);
+  protected readonly dogSearchError = signal('');
+  protected readonly dogPreview = signal<DogIdentity | null>(null);
+
   // Validaciones
+  protected readonly dogError = computed(() =>
+    this.submitted() && this.dogMode() === 'existing' && !this.selectedDog()
+      ? 'Busca y confirma el perro existente antes de publicar.'
+      : '',
+  );
   protected readonly photoError = computed(() =>
     this.submitted() && !this.photo() ? 'Toma o elige una fotografía del perro.' : '',
   );
@@ -1011,6 +1213,58 @@ export class CreateReportPage implements OnInit {
 
   protected pct(value: number): number {
     return Math.round(value * 100);
+  }
+
+  // ---------- Identidad del perro ----------
+  protected setDogMode(mode: 'new' | 'existing' | 'ungrouped'): void {
+    this.dogMode.set(mode);
+    if (mode !== 'existing') {
+      this.selectedDog.set(null);
+      this.dogPreview.set(null);
+    }
+  }
+
+  protected openDogPicker(): void {
+    this.dogPickerOpen.set(true);
+    this.dogPreview.set(null);
+    void this.searchDogs();
+  }
+
+  protected onDogPickerDismiss(): void {
+    this.dogPickerOpen.set(false);
+    this.dogPreview.set(null);
+  }
+
+  protected onDogQuery(value: string): void {
+    this.dogQuery.set(value);
+    void this.searchDogs();
+  }
+
+  protected async searchDogs(): Promise<void> {
+    this.dogSearchLoading.set(true);
+    this.dogSearchError.set('');
+    try {
+      this.dogSearchResults.set(await this.reports.searchDogs(this.dogQuery()));
+    } catch {
+      this.dogSearchError.set('No se pudo cargar la lista de perros.');
+    } finally {
+      this.dogSearchLoading.set(false);
+    }
+  }
+
+  protected previewDog(dog: DogIdentity): void {
+    this.dogPreview.set(dog);
+  }
+
+  protected confirmDog(dog: DogIdentity): void {
+    this.selectedDog.set(dog);
+    if (dog.breed && !this.breed()) {
+      this.breed.set(dog.breed);
+    }
+    if (dog.size && !this.size()) {
+      this.size.set(dog.size);
+    }
+    this.onDogPickerDismiss();
   }
 
   protected onToggleEmergency(checked: boolean): void {
@@ -1194,6 +1448,7 @@ export class CreateReportPage implements OnInit {
     this.submitted.set(true);
 
     const hasErrors =
+      this.dogError() ||
       this.photoError() ||
       this.titleError() ||
       this.breedError() ||
@@ -1220,10 +1475,37 @@ export class CreateReportPage implements OnInit {
 
     this.publishing.set(true);
     let uploadedPath: string | null = null;
+    let createdDogId: string | null = null;
+    let reportCreated = false;
     try {
       const uploaded = await this.storage.uploadPhoto(photo.blob, user.id);
       uploadedPath = uploaded.path;
       const w = this.weather();
+
+      let dogId: string | null = null;
+      let parentReportId: string | null = null;
+      if (this.dogMode() === 'new') {
+        const dog = await this.reports.createDog(
+          {
+            name: this.dogName().trim() || null,
+            breed: this.breed(),
+            size: this.size() as DogSize,
+            photo_url: uploaded.publicUrl,
+          },
+          user.id,
+        );
+        dogId = dog.id;
+        createdDogId = dog.id;
+      } else if (this.dogMode() === 'existing') {
+        const sel = this.selectedDog();
+        if (!sel) {
+          throw new Error('Debes seleccionar un perro existente para continuar.');
+        }
+        // Resuelve y asegura que el ID pertenezca a la tabla `dogs` (incluso si era un perro histórico)
+        dogId = await this.reports.resolveDogIdForReport(sel, user.id);
+        // Si este perro o reporte previo ya tenía una alerta raíz asociada, se vincula a ella
+        parentReportId = sel.origin_report_id ?? null;
+      }
 
       // Si es aproximada, añadimos un pequeño offset aleatorio (30-80 metros)
       // para proteger la vivienda exacta del usuario si es su mascota
@@ -1244,6 +1526,8 @@ export class CreateReportPage implements OnInit {
       // `is_approximate_location`. La urgencia ya se guarda en `urgency_level` y
       // el motivo "Otro" se conserva en `situation` (que la ficha muestra tal cual).
       const report: NewDogReport = {
+        dog_id: dogId,
+        parent_report_id: parentReportId,
         title: this.title().trim(),
         photo_url: uploaded.publicUrl,
         photo_path: uploaded.path,
@@ -1268,6 +1552,7 @@ export class CreateReportPage implements OnInit {
       };
 
       await this.reports.create(report, user.id);
+      reportCreated = true;
       this.draftReady = false;
       await this.prefs.remove(PREF_KEYS.reportDraft);
       await this.router.navigateByUrl('/home', { replaceUrl: true });
@@ -1278,6 +1563,7 @@ export class CreateReportPage implements OnInit {
         'success',
       );
     } catch (e) {
+      if (createdDogId && !reportCreated) await this.reports.deleteDog(createdDogId).catch(() => undefined);
       if (uploadedPath) await this.storage.deletePhoto(uploadedPath).catch(() => undefined);
       await this.ui.toast(e instanceof Error ? e.message : 'No se pudo publicar el reporte.', 'danger');
     } finally {

@@ -3,9 +3,39 @@ export type UrgencyLevel = 'normal' | 'alta' | 'critica';
 export type UrgencyCategory = 'herido' | 'enfermo' | 'embarazada' | 'cachorros' | 'atrapado' | 'clima_adverso' | 'otro';
 export type ReportStatus = 'activo' | 'en_proceso' | 'resuelto';
 
+export interface ReportPhoto {
+  id: string;
+  report_id: string;
+  photo_url: string;
+  photo_path: string | null;
+  position: number;
+  is_primary: boolean;
+}
+
+/** Identidad explícita de un perro. Nunca se infiere de fotos, GPS ni texto. */
+export interface DogIdentity {
+  id: string;
+  name: string | null;
+  breed: string | null;
+  size: DogSize | null;
+  photo_url: string | null;
+  created_at: string;
+  /** Si este perro fue seleccionado desde una alerta existente, guarda el ID de la alerta original */
+  origin_report_id?: string | null;
+}
+
+export interface NewDogIdentity {
+  name: string | null;
+  breed: string | null;
+  size: DogSize | null;
+  photo_url: string | null;
+}
+
 export interface DogReport {
   id: string;
   user_id: string;
+  dog_id: string | null;
+  parent_report_id?: string | null;
   title: string;
   photo_url: string;
   photo_path: string | null;
@@ -35,9 +65,38 @@ export interface DogReport {
   is_approximate_location?: boolean;
   is_emergency?: boolean;
   // Relaciones que trae Supabase en las consultas con "select"
-  profiles?: { display_name: string } | null;
+  profiles?: { display_name: string; avatar_url?: string | null } | null;
+  dogs?: DogIdentity | null;
   report_comments?: { count: number }[];
+  photos?: ReportPhoto[];
 }
+
+export type ReportPatch = Partial<
+  Pick<
+    DogReport,
+    | 'title'
+    | 'photo_url'
+    | 'photo_path'
+    | 'breed'
+    | 'size'
+    | 'description'
+    | 'situation'
+    | 'found_at'
+    | 'urgency_level'
+    | 'urgency_category'
+    | 'latitude'
+    | 'longitude'
+    | 'zone'
+    | 'weather_code'
+    | 'weather_description'
+    | 'weather_emoji'
+    | 'temperature'
+    | 'humidity'
+    | 'precipitation'
+    | 'wind_speed'
+    | 'report_status'
+  >
+>;
 
 /** Datos que el formulario envía al crear un reporte (user_id lo pone el servicio) */
 export type NewDogReport = Omit<
@@ -48,6 +107,7 @@ export type NewDogReport = Omit<
   | 'updated_at'
   | 'profiles'
   | 'report_comments'
+  | 'photos'
   | 'is_approximate_location'
   | 'is_emergency'
 >;

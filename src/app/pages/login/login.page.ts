@@ -83,7 +83,7 @@ import { EMAIL_RE } from '../../core/utils/validators';
   styles: [
     `
       .auth-content {
-        --background: linear-gradient(180deg, #faf6f0 0%, #f3ede2 100%);
+        --background: linear-gradient(180deg, #faf8f5 0%, #edf7f3 100%);
       }
       .auth-wrap {
         padding: 24px 20px 40px;
@@ -100,28 +100,29 @@ import { EMAIL_RE } from '../../core/utils/validators';
         align-items: center;
         gap: 6px;
         background: #ffffff;
-        border: 1px solid rgba(229, 231, 235, 0.9);
+        border: 1px solid rgba(19, 78, 63, 0.15);
         padding: 6px 14px;
         border-radius: 999px;
-        color: #4b5563;
+        color: #134e3f;
         font-weight: 700;
         font-size: 0.8rem;
         cursor: pointer;
         margin-bottom: 24px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+        box-shadow: 0 2px 6px rgba(19, 78, 63, 0.05);
       }
       .brand-hero {
         text-align: center;
         margin-bottom: 24px;
       }
       .logo-box {
-        width: 76px;
-        height: 76px;
+        width: 80px;
+        height: 80px;
         margin: 0 auto 14px;
         border-radius: 26px;
         background: #ffffff;
         overflow: hidden;
-        box-shadow: 0 10px 24px rgba(16, 185, 129, 0.2);
+        box-shadow: 0 10px 24px rgba(19, 78, 63, 0.12);
+        border: 2px solid #75D6B3;
       }
       .logo-box img {
         width: 100%;
@@ -132,21 +133,21 @@ import { EMAIL_RE } from '../../core/utils/validators';
         margin: 0;
         font-size: 1.85rem;
         font-weight: 800;
-        color: #064e3b;
+        color: #134e3f;
         letter-spacing: -0.03em;
       }
       .tagline {
         margin: 6px 0 0;
-        color: #6b7280;
+        color: #4b6358;
         font-size: 0.9rem;
       }
 
       .auth-card {
         background: #ffffff;
-        border-radius: 26px;
+        border-radius: 24px;
         padding: 26px 22px;
-        box-shadow: var(--pw-shadow-soft);
-        border: 1px solid rgba(229, 231, 235, 0.8);
+        box-shadow: 0 4px 20px -2px rgba(19, 78, 63, 0.07);
+        border: 1px solid rgba(215, 232, 225, 0.9);
       }
       .custom-input {
         --background: #fafafa;

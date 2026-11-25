@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import type { OnInit } from '@angular/core';
+import { Component, inject, isDevMode, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   IonBackButton,
@@ -16,10 +17,11 @@ import {
   IonToolbar,
 } from '@ionic/angular';
 import { add, alertCircle, chevronBack, locateOutline, refreshOutline } from 'ionicons/icons';
+
 import { LocationService } from '../../core/services/location.service';
 import { ReportsService } from '../../core/services/reports.service';
 import { UiService } from '../../core/services/ui.service';
-import { DogReport, UrgencyLevel } from '../../models/dog-report.model';
+import type { DogReport } from '../../models/dog-report.model';
 import { CityMapComponent } from '../../shared/components/city-map/city-map.component';
 
 @Component({
@@ -78,7 +80,8 @@ import { CityMapComponent } from '../../shared/components/city-map/city-map.comp
       }
 
       <app-city-map
-        [reports]="filteredReports()"
+        [reports]="reports()"
+        [filter]="filter()"
         [userLat]="userLat()"
         [userLng]="userLng()"
         (selectReport)="onReportSelected($event)"
@@ -102,21 +105,34 @@ import { CityMapComponent } from '../../shared/components/city-map/city-map.comp
   styles: [
     `
       .filter-bar {
-        --background: #fff8ee;
-        padding: 0 8px 6px;
+        --background: #faf8f5;
+        padding: 4px 12px 8px;
       }
       ion-segment {
-        background: #f0e6d8;
-        border-radius: 12px;
+        background: #ede6dc;
+        border-radius: 14px;
+        padding: 3px;
+      }
+      ion-segment-button {
+        --color: #4b6358;
+        --color-checked: #134e3f;
+        --indicator-color: #75d6b3;
+        --border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        min-height: 38px;
       }
       .emergency-tab {
-        --color-checked: #e5383b;
-        --indicator-color: #ffe3e3;
+        --color-checked: #ffffff;
+        --indicator-color: #ef4444;
         font-weight: 700;
       }
       .emergency-tab ion-icon {
-        color: #e5383b;
+        color: #ef4444;
         margin-right: 4px;
+      }
+      .emergency-tab.segment-button-checked ion-icon {
+        color: #ffffff;
       }
       .map-content {
         position: relative;
@@ -166,20 +182,6 @@ export class MapViewPage implements OnInit {
   protected readonly userLat = signal<number | null>(null);
   protected readonly userLng = signal<number | null>(null);
 
-  get filteredReports(): () => DogReport[] {
-    return () => {
-      const mode = this.filter();
-      const list = this.reports();
-      if (mode === 'alerts') {
-        return list.filter((r) => r.urgency_level === 'critica' || r.urgency_level === 'alta');
-      }
-      if (mode === 'community') {
-        return list.filter((r) => r.urgency_level === 'normal');
-      }
-      return list;
-    };
-  }
-
   async ngOnInit(): Promise<void> {
     await this.loadReports();
     void this.locateMe();
@@ -190,8 +192,10 @@ export class MapViewPage implements OnInit {
     try {
       const data = await this.reportsService.list();
       this.reports.set(data);
-    } catch {
-      void this.ui.toast('No se pudieron cargar los perritos en el mapa.', 'danger');
+    } catch (error) {
+      console.error('[MapView] Error al cargar los reportes:', error);
+      const detail = isDevMode() && error instanceof Error ? ` (${error.message})` : '';
+      void this.ui.toast(`No se pudieron cargar los perritos en el mapa.${detail}`, 'danger');
     } finally {
       this.loading.set(false);
     }

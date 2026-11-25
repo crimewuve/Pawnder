@@ -1,9 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { ReportComment } from '../../models/comment.model';
+
+import type { ReportComment } from '../../models/comment.model';
+
 import { SupabaseService } from './supabase.service';
 
-const SELECT = '*, profiles(display_name)';
+const SELECT = '*, profiles(display_name, avatar_url)';
 
 @Injectable({ providedIn: 'root' })
 export class CommentsService {
@@ -20,13 +22,19 @@ export class CommentsService {
     return (data ?? []) as unknown as ReportComment[];
   }
 
-  async addComment(reportId: string, userId: string, content: string): Promise<ReportComment> {
+  async addComment(
+    reportId: string,
+    userId: string,
+    content: string,
+    parentId: string | null = null,
+  ): Promise<ReportComment> {
     const { data, error } = await this.supabase
       .from('report_comments')
       .insert({
         report_id: reportId,
         user_id: userId,
         content: content.trim(),
+        parent_id: parentId,
       })
       .select(SELECT)
       .single();
@@ -47,7 +55,7 @@ export class CommentsService {
             table: 'report_comments',
             filter: `report_id=eq.${reportId}`,
           },
-          () => subscriber.next()
+          () => subscriber.next(),
         )
         .subscribe();
 

@@ -215,39 +215,62 @@ import { ReportCardComponent } from '../../shared/components/report-card/report-
   styles: [
     `
       .sub-bar {
-        --background: #fff8ee;
-        padding: 0 8px;
+        --background: #faf8f5;
+        padding: 4px 12px 6px;
+      }
+      ion-segment {
+        background: #ede6dc;
+        border-radius: 14px;
+        padding: 3px;
+      }
+      ion-segment-button {
+        --color: #4b6358;
+        --color-checked: #134e3f;
+        --indicator-color: #75D6B3;
+        --border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        min-height: 38px;
+        transition: color 0.15s ease;
       }
       .emergency-tab {
-        --color-checked: #e5383b;
-        --indicator-color: #ffe3e3;
+        --color-checked: #ffffff;
+        --indicator-color: #ef4444;
         font-weight: 700;
       }
       .emergency-tab ion-icon {
-        color: #e5383b;
+        color: #ef4444;
         margin-right: 4px;
         font-size: 16px;
       }
       .search-bar {
-        --background: #fff8ee;
-        padding: 0 8px 4px;
+        --background: #faf8f5;
+        padding: 0 8px 8px;
       }
       ion-searchbar {
         --background: #ffffff;
-        --border-radius: 12px;
-        --box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        --border-radius: 14px;
+        --box-shadow: 0 2px 8px rgba(19, 78, 63, 0.05);
+        --placeholder-color: #7d968b;
+        --color: #172a24;
       }
       .wrap {
-        padding: 8px 12px 96px;
+        padding: 12px 14px 96px;
         max-width: 1100px;
         margin: 0 auto;
       }
       .welcome-box {
-        margin: 4px 4px 10px;
+        margin: 4px 4px 12px;
+        background: #eafaf4;
+        border: 1px solid #c2ebd9;
+        border-radius: 16px;
+        padding: 10px 14px;
       }
       .sub {
         margin: 0;
-        color: #8a817a;
+        color: #134e3f;
+        font-weight: 600;
+        font-size: 0.88rem;
         font-size: 0.88rem;
       }
       .center {
