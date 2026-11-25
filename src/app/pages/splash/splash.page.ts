@@ -67,7 +67,7 @@ export class SplashPage implements OnInit {
   private readonly router = inject(Router);
 
   async ngOnInit(): Promise<void> {
-    // Espera a recuperar la sesión guardada y a que se vea la animación
+    
     await Promise.all([this.auth.whenReady(), new Promise((r) => setTimeout(r, 1800))]);
     await this.router.navigateByUrl(this.auth.isLoggedIn() ? '/menu' : '/menu', {
       replaceUrl: true,

@@ -1,4 +1,5 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, inject, signal, viewChild } from '@angular/core';
+import type { AfterViewInit, ElementRef, OnDestroy} from '@angular/core';
+import { Component, inject, signal, viewChild } from '@angular/core';
 import { IonButton, IonIcon, IonSpinner, ModalController } from '@ionic/angular';
 import { cameraReverseOutline, close } from 'ionicons/icons';
 

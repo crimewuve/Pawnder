@@ -3,7 +3,7 @@ import { Component, computed, effect, input, signal, viewChild } from '@angular/
 import { IonIcon } from '@ionic/angular';
 import { pawOutline } from 'ionicons/icons';
 
-/** Carrusel táctil horizontal con scroll-snap: se desliza para ver las demás fotos. */
+
 @Component({
   selector: 'app-photo-carousel',
   imports: [IonIcon],

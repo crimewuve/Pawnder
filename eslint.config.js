@@ -1,4 +1,4 @@
-// @ts-check
+
 const ionic = require('@ionic/eslint-config/recommended');
 const angular = require('angular-eslint');
 const { defineConfig } = require('eslint/config');
@@ -13,6 +13,7 @@ module.exports = defineConfig([
     extends: [angular.configs.tsRecommended],
     processor: angular.processInlineTemplates,
     rules: {
+      'no-empty': ['error', { allowEmptyCatch: true }],
       '@angular-eslint/directive-selector': [
         'error',
         {

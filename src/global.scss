@@ -1,8 +1,6 @@
-/*
- * App Global CSS — Pawnder: Dog Directory & Social Rescue System
- */
 
-/* Core CSS required for Ionic components to work properly */
+
+
 @import '@ionic/angular/css/core.css';
 @import '@ionic/angular/css/normalize.css';
 @import '@ionic/angular/css/structure.css';
@@ -14,7 +12,7 @@
 @import '@ionic/angular/css/text-transformation.css';
 @import '@ionic/angular/css/flex-utils.css';
 
-/* ===== Pawnder: Design Tokens ===== */
+
 :root:root {
   color-scheme: light;
   font-family:
@@ -23,13 +21,12 @@
     -apple-system,
     sans-serif;
 
-  /* Palette: Warm Sand & Cream + Menta Pawnder (#75D6B3) + Verde Bosque (#134e3f) */
   --ion-background-color: #faf8f5;
   --ion-background-color-rgb: 250, 248, 245;
   --ion-text-color: #172a24;
   --ion-text-color-rgb: 23, 42, 36;
 
-  /* Primary: Verde Menta Pawnder (#75D6B3) */
+  
   --ion-color-primary: #75D6B3;
   --ion-color-primary-rgb: 117, 214, 179;
   --ion-color-primary-contrast: #134e3f;
@@ -37,12 +34,12 @@
   --ion-color-primary-shade: #5bbd9b;
   --ion-color-primary-tint: #9ee6cd;
 
-  /* Pawnder Forest / Dark Mint for high contrast buttons & headings */
+  
   --pw-dark-green: #134e3f;
   --pw-dark-green-shade: #0e3b30;
   --pw-dark-green-tint: #1c6d59;
 
-  /* Warning / Pawnder Accent: Warm Amber Coral */
+  
   --ion-color-warning: #f59e0b;
   --ion-color-warning-rgb: 245, 158, 11;
   --ion-color-warning-contrast: #ffffff;
@@ -50,7 +47,7 @@
   --ion-color-warning-shade: #d97706;
   --ion-color-warning-tint: #fbbf24;
 
-  /* Danger: Rescue Emergency Crimson */
+  
   --ion-color-danger: #ef4444;
   --ion-color-danger-rgb: 239, 68, 68;
   --ion-color-danger-contrast: #ffffff;
@@ -58,7 +55,7 @@
   --ion-color-danger-shade: #dc2626;
   --ion-color-danger-tint: #f87171;
 
-  /* Card & Surfaces */
+  
   --ion-card-background: #ffffff;
   --ion-item-background: #ffffff;
   --ion-toolbar-background: #faf8f5;
@@ -67,7 +64,7 @@
   --ion-tab-bar-color: #7d968b;
   --ion-tab-bar-color-selected: #134e3f;
 
-  /* Custom Elevation & Geometry */
+  
   --pw-radius-sm: 10px;
   --pw-radius-md: 16px;
   --pw-radius-lg: 24px;
@@ -77,7 +74,7 @@
   --pw-shadow-alert: 0 8px 24px -3px rgba(239, 68, 68, 0.35);
   --pw-font-mono: 'JetBrains Mono', monospace;
 
-  /* Form system: one visual language for every control */
+  
   --pw-field-radius: 16px;
   --pw-field-border: #d7e8e1;
   --pw-field-border-hover: #75D6B3;
@@ -107,7 +104,7 @@ h6 {
   letter-spacing: -0.03em;
 }
 
-/* Polished Scrollbars */
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -120,7 +117,7 @@ h6 {
   border-radius: 999px;
 }
 
-/* ===== Leaflet: Pines de Pawnder y Rescate ===== */
+
 .pawn-pin {
   background: transparent;
   border: none;
@@ -159,7 +156,7 @@ h6 {
   }
 }
 
-/* Leaflet Cluster Bubbles */
+
 .marker-cluster-small,
 .marker-cluster-medium,
 .marker-cluster-large {
@@ -176,7 +173,7 @@ h6 {
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
 }
 
-/* ===== Pawnder: shared publication form system ===== */
+
 .pw-form {
   --pw-form-gap: 14px;
 }
@@ -230,7 +227,7 @@ h6 {
   --highlight-color-focused: var(--ion-color-danger);
 }
 
-/* Raza picker: same outline, radius and rhythm as the other fields */
+
 .pw-form ion-item.pw-pick {
   --background: var(--pw-field-bg);
   --color: var(--ion-text-color);
@@ -270,7 +267,7 @@ h6 {
   color: var(--ion-text-color);
 }
 
-/* Segmented selectors share the same rounded surface */
+
 .pw-form ion-segment {
   --background: #edf7f2;
   border-radius: 12px;
@@ -300,7 +297,7 @@ h6 {
   transform: scale(0.97);
 }
 
-/* Buttons: consistent radius, weight, hover and disabled feedback */
+
 .pw-form ion-button {
   --border-radius: var(--pw-field-radius);
   --box-shadow: 0 3px 10px rgba(16, 185, 129, 0.14);
@@ -389,7 +386,7 @@ h6 {
   }
 }
 
-/* Keyboard focus that matches the playful PAWNDER look */
+
 :focus-visible {
   outline: 3px solid rgba(16, 185, 129, 0.55) !important;
   outline-offset: 2px;

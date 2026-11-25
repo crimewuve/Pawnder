@@ -42,7 +42,7 @@ export class AuthService {
     this.supabase.auth.onAuthStateChange((_event, session) => {
       this.session.set(session);
       if (session) {
-        // setTimeout evita bloqueos al llamar a Supabase dentro de este callback
+        
         setTimeout(() => this.loadProfile(session.user.id), 0);
       } else {
         this.profile.set(null);
@@ -76,7 +76,7 @@ export class AuthService {
     return data as Profile;
   }
 
-  /** Devuelve needsConfirmation=true si Supabase exige confirmar el correo */
+  
   async register(email: string, password: string, displayName: string): Promise<{ needsConfirmation: boolean }> {
     const { data, error } = await this.supabase.auth.signUp({
       email,

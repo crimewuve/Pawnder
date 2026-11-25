@@ -45,7 +45,7 @@ import { UiService } from '../../core/services/ui.service';
 
     <ion-content [fullscreen]="true" class="menu-content">
       <div class="menu-container">
-        <!-- Hero: Pawnder Discovery & Social Community -->
+        
         <div class="hero-section">
           <div class="hero-visual">
             <div class="paw-badge-glow"></div>
@@ -69,9 +69,9 @@ import { UiService } from '../../core/services/ui.service';
           </p>
         </div>
 
-        <!-- Bento Menu Options -->
+        
         <div class="options-grid">
-          <!-- 1. MAPA Y EXPLORAR -->
+          
           <div
             class="menu-card map-card"
             role="button"
@@ -93,7 +93,7 @@ import { UiService } from '../../core/services/ui.service';
             <ion-icon [icon]="chevronForwardOutline" class="arrow-icon"></ion-icon>
           </div>
 
-          <!-- 2. COMPARTIR -->
+          
           <div
             class="menu-card share-card"
             role="button"
@@ -115,7 +115,7 @@ import { UiService } from '../../core/services/ui.service';
             <ion-icon [icon]="chevronForwardOutline" class="arrow-icon"></ion-icon>
           </div>
 
-          <!-- 3. BIBLIOTECA (DIRECTORIO CANINO) -->
+          
           <div
             class="menu-card library-card"
             role="button"
@@ -137,7 +137,7 @@ import { UiService } from '../../core/services/ui.service';
             <ion-icon [icon]="chevronForwardOutline" class="arrow-icon"></ion-icon>
           </div>
 
-          <!-- 4. MI PERFIL -->
+          
           @if (auth.isLoggedIn()) {
             <div
               class="menu-card profile-card"
@@ -162,7 +162,7 @@ import { UiService } from '../../core/services/ui.service';
           }
         </div>
 
-        <!-- Micro-footer -->
+        
         <div class="menu-footer">
           <span>Hecho con amor canino</span>
           <ion-icon [icon]="heart" class="heart-icon"></ion-icon>
@@ -316,7 +316,6 @@ import { UiService } from '../../core/services/ui.service';
         line-height: 1.45;
       }
 
-      /* Bento Grid of Menu Cards */
       .options-grid {
         display: flex;
         flex-direction: column;

@@ -105,17 +105,17 @@ import { WeatherIndicatorComponent } from '../../shared/components/weather-indic
         </div>
       } @else if (report(); as r) {
         <div class="detail-container">
-          <!-- Hero Photograph & Floating Badges -->
+          
           <div class="hero-viewport">
             <app-photo-carousel [photos]="photoUrls()" [alt]="r.title" />
 
-            <!-- Unique Pawnder Tag ID -->
+            
             <div class="floating-pawn-id">
               <ion-icon [icon]="pawOutline"></ion-icon>
               <span>{{ pawnId() }}</span>
             </div>
 
-            <!-- Emergency / Pet status -->
+            
             @if (r.urgency_level !== 'normal') {
               <div class="urgency-pill" [class.is-crit]="r.urgency_level === 'critica'">
                 <ion-icon [icon]="alertCircle"></ion-icon>
@@ -133,7 +133,7 @@ import { WeatherIndicatorComponent } from '../../shared/components/weather-indic
             </div>
           </div>
 
-          <!-- Main Info & Stats Header -->
+          
           <div class="info-header">
             <h2>{{ r.title }}</h2>
 
@@ -161,7 +161,7 @@ import { WeatherIndicatorComponent } from '../../shared/components/weather-indic
             </div>
           </div>
 
-          <!-- Detail Card: Description, Context & Weather -->
+          
           <ion-card class="glass-card">
             <ion-card-content>
               <h4>Descripción</h4>
@@ -174,7 +174,7 @@ import { WeatherIndicatorComponent } from '../../shared/components/weather-indic
                 </div>
               }
 
-              <!-- Meta dates & Zone -->
+              
               <div class="meta-grid">
                 <div class="meta-item">
                   <ion-icon [icon]="timeOutline"></ion-icon>
@@ -193,7 +193,7 @@ import { WeatherIndicatorComponent } from '../../shared/components/weather-indic
                 </div>
               </div>
 
-              <!-- Weather context snapshot -->
+              
               @if (r.weather_emoji) {
                 <div class="weather-box">
                   <app-weather-indicator [emoji]="r.weather_emoji" [summary]="weatherSummary()" />
@@ -202,7 +202,7 @@ import { WeatherIndicatorComponent } from '../../shared/components/weather-indic
             </ion-card-content>
           </ion-card>
 
-          <!-- Interactive GPS Mini-Map Section -->
+          
           <div class="section-card map-card-section">
             <div class="section-title-row">
               <div>
@@ -230,7 +230,7 @@ import { WeatherIndicatorComponent } from '../../shared/components/weather-indic
             </ion-button>
           </div>
 
-          <!-- Status updater (solo el autor de la publicación) -->
+          
           @if (isOwner()) {
             <ion-card class="glass-card status-box">
               <ion-card-content>
@@ -251,7 +251,7 @@ import { WeatherIndicatorComponent } from '../../shared/components/weather-indic
             </ion-card>
           }
 
-          <!-- Realtime Community Comments -->
+          
           <div class="section-card comments-card">
             <h3>💬 Comunidad & Rescate ({{ comments().length }})</h3>
             <p class="hint">Coordina ayuda, avistamientos o comparte cariño.</p>
@@ -323,7 +323,7 @@ import { WeatherIndicatorComponent } from '../../shared/components/weather-indic
               }
             </ion-list>
 
-            <!-- Send Input Bar -->
+            
             <div class="comment-bar">
               <ion-input
                 placeholder="Escribe un comentario..."
@@ -367,7 +367,6 @@ import { WeatherIndicatorComponent } from '../../shared/components/weather-indic
         color: #6b7280;
       }
 
-      /* Hero Viewport */
       .hero-viewport {
         position: relative;
         width: 100%;
@@ -459,7 +458,6 @@ import { WeatherIndicatorComponent } from '../../shared/components/weather-indic
         background: #6b7280;
       }
 
-      /* Info Header */
       .info-header {
         margin-bottom: 16px;
       }
@@ -536,7 +534,6 @@ import { WeatherIndicatorComponent } from '../../shared/components/weather-indic
         border: 1px solid #fecaca;
       }
 
-      /* Glass Card */
       .glass-card {
         margin: 0 0 18px;
         border-radius: 22px;
@@ -598,7 +595,6 @@ import { WeatherIndicatorComponent } from '../../shared/components/weather-indic
         margin-top: 12px;
       }
 
-      /* Sections */
       .section-card {
         background: #ffffff;
         border-radius: 22px;
@@ -624,7 +620,6 @@ import { WeatherIndicatorComponent } from '../../shared/components/weather-indic
         font-weight: 700;
       }
 
-      /* Comment Bubbles */
       .comment-bubbles {
         background: transparent;
         display: flex;
@@ -826,7 +821,6 @@ export class ReportDetailPage implements OnInit, OnDestroy {
     return name.charAt(0).toUpperCase();
   });
 
-  /** Aplana el árbol de respuestas para poder indentar cada nivel sin recursión en la plantilla. */
   protected readonly commentTree = computed(() => {
     const items = [...this.comments()];
     const byId = new Map(items.map((c) => [c.id, c]));
@@ -918,7 +912,6 @@ export class ReportDetailPage implements OnInit, OnDestroy {
       const c = await this.commentsService.listForReport(this.reportId());
       this.comments.set(c);
     } catch {
-      // Silencioso
     }
   }
 
@@ -1045,7 +1038,6 @@ export class ReportDetailPage implements OnInit, OnDestroy {
           url: window.location.href,
         });
       } catch {
-        // Cancelado
       }
     } else {
       void this.ui.toast('Enlace copiado al portapapeles', 'medium');

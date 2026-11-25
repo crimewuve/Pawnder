@@ -1,7 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { EMPTY, Observable, catchError, expand, map, reduce, shareReplay, throwError } from 'rxjs';
-import { Breed, DogApiBreedItem, DogApiBreedsResponse } from '../../models/breed.model';
+import type { Observable} from 'rxjs';
+import { EMPTY, catchError, expand, map, reduce, shareReplay, throwError } from 'rxjs';
+
+import type { Breed, DogApiBreedItem, DogApiBreedsResponse } from '../../models/breed.model';
 import { describeHttpError } from '../utils/http-error';
 
 @Injectable({ providedIn: 'root' })

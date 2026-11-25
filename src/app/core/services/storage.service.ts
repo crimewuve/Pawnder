@@ -10,7 +10,7 @@ export class StorageService {
   private readonly bucket = environment.storageBucket;
   private readonly avatarBucket = environment.avatarBucket;
 
-  /** Sube la foto a <user_id>/<archivo> (así lo exigen las políticas de Storage) */
+  
   async uploadPhoto(blob: Blob, userId: string): Promise<{ path: string; publicUrl: string }> {
     const type = blob.type === 'image/png' || blob.type === 'image/webp' ? blob.type : 'image/jpeg';
     const ext = type === 'image/png' ? 'png' : type === 'image/webp' ? 'webp' : 'jpg';

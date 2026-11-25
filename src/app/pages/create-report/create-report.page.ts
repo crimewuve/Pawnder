@@ -127,7 +127,7 @@ interface BreedSuggestion {
     </ion-header>
 
     <ion-content class="ion-padding pw-form">
-      <!-- 1. TIPO DE PUBLICACIÓN: MASCOTA O EMERGENCIA -->
+      
       <div class="emergency-toggle-card" [class.is-emergency]="isEmergency()">
         <div class="toggle-info">
           <div class="toggle-icon">
@@ -151,7 +151,7 @@ interface BreedSuggestion {
         ></ion-toggle>
       </div>
 
-      <!-- 2. FOTOGRAFÍA -->
+      
       <h3>1. Fotografía</h3>
       <div class="photo-box" [class.invalid]="photoError()">
         @if (photo(); as p) {
@@ -187,7 +187,7 @@ interface BreedSuggestion {
         <p class="pw-error">{{ photoError() }}</p>
       }
 
-      <!-- 3. DATOS DEL PERRO -->
+      
       <h3>2. Datos del perro</h3>
 
       <div class="dog-identity-card">
@@ -377,11 +377,11 @@ interface BreedSuggestion {
         (ionInput)="situation.set($any($event).detail.value ?? '')"
       ></ion-textarea>
 
-      <!-- 4. UBICACIÓN Y SEGURIDAD CONTRA ROBO -->
+      
       <h3>3. Ubicación</h3>
       <p class="pw-hint">Indica la zona donde se encuentra o vio al perrito.</p>
 
-      <!-- Selector de Ubicación Precisa vs Aproximada (Protección de Mascotas) -->
+      
       <div class="privacy-card">
         <div class="privacy-header">
           <ion-icon [icon]="shieldCheckmarkOutline"></ion-icon>
@@ -478,7 +478,7 @@ interface BreedSuggestion {
         <p class="pw-error">{{ zoneError() }}</p>
       }
 
-      <!-- 5. CLIMA -->
+      
       @if (gps()) {
         <h3>4. Clima en la zona</h3>
         @if (weatherLoading()) {
@@ -491,7 +491,7 @@ interface BreedSuggestion {
         }
       }
 
-      <!-- 6. SECCIÓN CONDICIONAL DE URGENCIA (SOLO SI IS_EMERGENCY ESTÁ ACTIVO) -->
+      
       @if (isEmergency()) {
         <div class="emergency-details-block">
           <h3>5. Nivel y Motivo de Urgencia 🚨</h3>
@@ -523,7 +523,7 @@ interface BreedSuggestion {
             <p class="pw-error">{{ categoryError() }}</p>
           }
 
-          <!-- Si eligen "Otro", se abre el campo para escribir -->
+          
           @if (urgencyCategory() === 'otro') {
             <ion-input
               class="gap"
@@ -558,7 +558,7 @@ interface BreedSuggestion {
       </ion-button>
     </ion-content>
 
-    <!-- MODAL DE RAZAS -->
+    
     <ion-modal [isOpen]="breedModalOpen()" (didDismiss)="breedModalOpen.set(false)">
       <ng-template>
         <ion-header>
@@ -599,7 +599,7 @@ interface BreedSuggestion {
       </ng-template>
     </ion-modal>
 
-    <!-- MODAL DE PERROS EXISTENTES -->
+    
     <ion-modal [isOpen]="dogPickerOpen()" (didDismiss)="onDogPickerDismiss()">
       <ng-template>
         <ion-header>
@@ -1047,7 +1047,7 @@ export class CreateReportPage implements OnInit {
   protected readonly categoryOptions = URGENCY_CATEGORY_OPTIONS;
   protected readonly maxDate = toLocalInput(new Date(Date.now() + 5 * 60000));
 
-  // Campos del formulario
+  
   protected readonly photo = signal<CapturedPhoto | null>(null);
   protected readonly breed = signal('');
   protected readonly size = signal<DogSize | ''>('');
@@ -1057,14 +1057,14 @@ export class CreateReportPage implements OnInit {
   protected readonly zone = signal('');
   protected readonly foundAt = signal(toLocalInput(new Date()));
 
-  // Emergencia y seguridad
+  
   protected readonly isEmergency = signal(false);
   protected readonly urgencyLevel = signal<UrgencyLevel>('alta');
   protected readonly urgencyCategory = signal<UrgencyCategory | ''>('');
   protected readonly customCategory = signal('');
-  protected readonly isApproximateLocation = signal(true); // Protege por defecto
+  protected readonly isApproximateLocation = signal(true); 
 
-  // Análisis de la foto
+  
   protected readonly analyzing = signal(false);
   protected readonly analysis = signal<DogAnalysis | null>(null);
   protected readonly breedSuggestion = signal<BreedSuggestion | null>(null);
@@ -1075,7 +1075,7 @@ export class CreateReportPage implements OnInit {
     return 'Buscando al perrito y su raza…';
   });
 
-  // Razas
+  
   protected readonly breeds = signal<Breed[]>([]);
   protected readonly breedsLoading = signal(false);
   protected readonly breedsError = signal('');
@@ -1088,7 +1088,7 @@ export class CreateReportPage implements OnInit {
       .slice(0, 200);
   });
 
-  // GPS, dirección y clima
+  
   protected readonly gps = signal<GpsFix | null>(null);
   protected readonly gpsLoading = signal(false);
   protected readonly gpsError = signal('');
@@ -1103,11 +1103,11 @@ export class CreateReportPage implements OnInit {
     return w ? weatherSummary(w) : '';
   });
 
-  // Estado
+  
   protected readonly submitted = signal(false);
   protected readonly publishing = signal(false);
 
-  // Identidad explícita del perro (nunca se infiere de fotos ni GPS)
+  
   protected readonly dogMode = signal<'new' | 'existing' | 'ungrouped'>('new');
   protected readonly dogName = signal('');
   protected readonly selectedDog = signal<DogIdentity | null>(null);
@@ -1118,7 +1118,7 @@ export class CreateReportPage implements OnInit {
   protected readonly dogSearchError = signal('');
   protected readonly dogPreview = signal<DogIdentity | null>(null);
 
-  // Validaciones
+  
   protected readonly dogError = computed(() =>
     this.submitted() && this.dogMode() === 'existing' && !this.selectedDog()
       ? 'Busca y confirma el perro existente antes de publicar.'
@@ -1215,7 +1215,7 @@ export class CreateReportPage implements OnInit {
     return Math.round(value * 100);
   }
 
-  // ---------- Identidad del perro ----------
+  
   protected setDogMode(mode: 'new' | 'existing' | 'ungrouped'): void {
     this.dogMode.set(mode);
     if (mode !== 'existing') {
@@ -1270,11 +1270,11 @@ export class CreateReportPage implements OnInit {
   protected onToggleEmergency(checked: boolean): void {
     this.isEmergency.set(checked);
     if (!checked) {
-      this.isApproximateLocation.set(true); // Para mascotas protegidas, aproximada por defecto
+      this.isApproximateLocation.set(true); 
     }
   }
 
-  // ---------- Fotografía ----------
+  
   protected async takePhoto(): Promise<void> {
     await this.acquirePhoto(() => this.camera.takePhoto());
   }
@@ -1347,7 +1347,7 @@ export class CreateReportPage implements OnInit {
     void this.ui.toast('Raza confirmada ✔', 'success');
   }
 
-  // ---------- Razas ----------
+  
   protected async loadBreeds(): Promise<void> {
     this.breedsLoading.set(true);
     this.breedsError.set('');
@@ -1372,7 +1372,7 @@ export class CreateReportPage implements OnInit {
     this.breedModalOpen.set(false);
   }
 
-  // ---------- Fecha y sector ----------
+  
   protected onFoundAt(value: string): void {
     this.foundAt.set(value ?? '');
   }
@@ -1382,7 +1382,7 @@ export class CreateReportPage implements OnInit {
     this.zoneAuto = false;
   }
 
-  // ---------- GPS, mapa y clima ----------
+  
   protected async getLocation(): Promise<void> {
     this.gpsLoading.set(true);
     this.gpsError.set('');
@@ -1442,7 +1442,7 @@ export class CreateReportPage implements OnInit {
     }
   }
 
-  // ---------- Publicar ----------
+  
   protected async submit(): Promise<void> {
     if (this.publishing()) return;
     this.submitted.set(true);
@@ -1501,14 +1501,14 @@ export class CreateReportPage implements OnInit {
         if (!sel) {
           throw new Error('Debes seleccionar un perro existente para continuar.');
         }
-        // Resuelve y asegura que el ID pertenezca a la tabla `dogs` (incluso si era un perro histórico)
+        
         dogId = await this.reports.resolveDogIdForReport(sel, user.id);
-        // Si este perro o reporte previo ya tenía una alerta raíz asociada, se vincula a ella
+        
         parentReportId = sel.origin_report_id ?? null;
       }
 
-      // Si es aproximada, añadimos un pequeño offset aleatorio (30-80 metros)
-      // para proteger la vivienda exacta del usuario si es su mascota
+      
+      
       let finalLat = gps.latitude;
       let finalLng = gps.longitude;
       if (this.isApproximateLocation()) {
@@ -1522,9 +1522,6 @@ export class CreateReportPage implements OnInit {
       const customReason = isEm && this.urgencyCategory() === 'otro' ? this.customCategory().trim() : '';
       const situationParts = [customReason ? `Motivo de emergencia: ${customReason}` : '', this.situation().trim()];
 
-      // dog_reports no tiene columnas para `custom_category`, `is_emergency` ni
-      // `is_approximate_location`. La urgencia ya se guarda en `urgency_level` y
-      // el motivo "Otro" se conserva en `situation` (que la ficha muestra tal cual).
       const report: NewDogReport = {
         dog_id: dogId,
         parent_report_id: parentReportId,

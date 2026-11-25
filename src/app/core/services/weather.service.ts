@@ -1,7 +1,9 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, catchError, map, throwError } from 'rxjs';
-import { OpenMeteoResponse, WeatherSnapshot } from '../../models/weather.model';
+import type { Observable} from 'rxjs';
+import { catchError, map, throwError } from 'rxjs';
+
+import type { OpenMeteoResponse, WeatherSnapshot } from '../../models/weather.model';
 import { describeHttpError } from '../utils/http-error';
 
 export interface WeatherInterpretation {
@@ -29,7 +31,7 @@ export function interpretWeather(
   return { emoji: '🐶☀️😊', label: 'Despejado' };
 }
 
-/** Texto informativo para mostrar en tarjetas y detalle */
+
 export function weatherSummary(w: {
   weather_description: string | null;
   temperature: number | null;

@@ -13,7 +13,6 @@ export class MapService {
     return map;
   }
 
-  /** Pin con emoji y color (los estilos están en global.scss) */
   pinIcon(emoji: string, color: string, isAlert = false): L.DivIcon {
     return L.divIcon({
       className: `pawn-pin ${isAlert ? 'alert-pin' : ''}`,

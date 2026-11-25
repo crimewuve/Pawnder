@@ -13,7 +13,7 @@ import { EMAIL_RE } from '../../core/utils/validators';
   template: `
     <ion-content [fullscreen]="true" class="auth-content">
       <div class="auth-wrap">
-        <!-- Back to menu button -->
+        
         <button class="back-pill" type="button" (click)="goMenu()">
           <ion-icon [icon]="arrowBackOutline"></ion-icon>
           <span>Menú principal</span>

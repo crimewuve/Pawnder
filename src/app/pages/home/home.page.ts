@@ -77,7 +77,7 @@ import { ReportCardComponent } from '../../shared/components/report-card/report-
         </ion-buttons>
       </ion-toolbar>
 
-      <!-- Barra de pestañas con botón conciso de urgencias -->
+      
       <ion-toolbar class="sub-bar">
         <ion-segment [value]="feedMode()" (ionChange)="onModeChange($any($event).detail.value)">
           <ion-segment-button value="all">
@@ -93,7 +93,7 @@ import { ReportCardComponent } from '../../shared/components/report-card/report-
         </ion-segment>
       </ion-toolbar>
 
-      <!-- Buscador y filtro -->
+      
       <ion-toolbar class="search-bar">
         <ion-searchbar
           placeholder="Buscar por raza, sector, título..."
@@ -156,7 +156,7 @@ import { ReportCardComponent } from '../../shared/components/report-card/report-
         }
       </div>
 
-      <!-- FAB para subir reporte -->
+      
       <ion-fab slot="fixed" vertical="bottom" horizontal="end">
         <ion-fab-button color="warning" (click)="goCreate()">
           <ion-icon [icon]="add"></ion-icon>
@@ -164,7 +164,7 @@ import { ReportCardComponent } from '../../shared/components/report-card/report-
       </ion-fab>
     </ion-content>
 
-    <!-- Modal de filtros adicionales -->
+    
     <ion-modal [isOpen]="filterModalOpen()" (didDismiss)="filterModalOpen.set(false)">
       <ng-template>
         <ion-header>

@@ -1,4 +1,3 @@
-/** Respuesta cruda de Open-Meteo (solo los campos que usamos) */
 export interface OpenMeteoResponse {
   latitude: number;
   longitude: number;
@@ -12,7 +11,7 @@ export interface OpenMeteoResponse {
   };
 }
 
-/** Copia del clima que se guarda junto al reporte */
+
 export interface WeatherSnapshot {
   weather_code: number;
   weather_description: string;

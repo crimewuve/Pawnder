@@ -15,16 +15,16 @@ import type {
 import { StorageService } from './storage.service';
 import { SupabaseService } from './supabase.service';
 
-// `*` ya incluye parent_report_id cuando la migración 20261125 está aplicada.
-// No se pide de forma explícita para que la consulta no falle en bases donde
-// todavía no se ejecutó esa migración.
+
+
+
 const SELECT =
   '*, profiles(display_name, avatar_url), dogs(id, name, breed, size, photo_url, created_at), dog_report_photos(id, report_id, photo_url, photo_path, position, is_primary), report_comments(count)';
 
 const FALLBACK_SELECT = '*';
 
-// Errores de esquema/relaciones opcionales: si el historial, las fotos o una
-// columna nueva no existen todavía, las alertas principales deben cargar igual.
+
+
 const OPTIONAL_SCHEMA_CODES = new Set(['42703', '42P01', 'PGRST200', 'PGRST204', 'PGRST205']);
 
 interface LegacyReportRow {
@@ -98,12 +98,8 @@ export class ReportsService {
 
   async create(input: NewDogReport, userId: string): Promise<DogReport> {
     const { parent_report_id, ...baseInput } = input;
-    // Si no hay alerta padre, se omite la columna: así funciona incluso antes
-    // de aplicar la migración 20261125_parent_report_id.
     const payload = parent_report_id ? { ...baseInput, parent_report_id } : baseInput;
 
-    // Se devuelve la fila base: evitar relaciones opcionales aquí impide que un
-    // fallo de lectura de fotos/comentarios convierta una publicación exitosa en error.
     let { data, error } = await this.supabase
       .from('dog_reports')
       .insert({ ...payload, user_id: userId })
@@ -122,15 +118,9 @@ export class ReportsService {
     return this.withPhotos([data as unknown as DogReport])[0];
   }
 
-  /**
-   * Busca todos los perros registrados en Pawnder (desde la tabla `dogs` y desde `dog_reports` antiguos).
-   * No limita arbitrariamente a publicaciones recientes ni se restringe al usuario actual.
-   * Evita duplicados y permite relacionar cualquier reporte nuevo con perros antiguos.
-   */
   async searchDogs(query: string): Promise<DogIdentity[]> {
     const term = query.trim().toLowerCase();
 
-    // 1. Consultar perros explícitos registrados en la tabla `dogs` (sin límite restrictivo)
     let dogsQuery = this.supabase
       .from('dogs')
       .select('id, name, breed, size, photo_url, created_at')
@@ -151,7 +141,6 @@ export class ReportsService {
       }
     }
 
-    // 2. Consultar reportes históricos (dog_reports) para recuperar perros y alertas de publicaciones anteriores
     const runLegacy = (select: string) => {
       let query = this.supabase.from('dog_reports').select(select).order('created_at', { ascending: false });
       if (term) {
@@ -164,7 +153,6 @@ export class ReportsService {
       'id, dog_id, parent_report_id, title, breed, size, photo_url, created_at',
     );
     if (repError && this.isOptionalSchemaError(repError)) {
-      // Antes de aplicar la migración parent_report_id, el historial se apoya en dog_id.
       ({ data: legacyReports, error: repError } = await runLegacy(
         'id, dog_id, title, breed, size, photo_url, created_at',
       ));
@@ -172,10 +160,8 @@ export class ReportsService {
     if (!repError && legacyReports) {
       const rows = legacyReports as unknown as LegacyReportRow[];
       for (const r of rows) {
-        // La alerta raíz es r.parent_report_id si existe, o r.id si es la publicación inicial
         const rootAlertId = r.parent_report_id || r.id;
 
-        // Si el perro ya estaba en resultsMap, aseguramos que tenga origin_report_id de la alerta inicial
         if (r.dog_id && resultsMap.has(r.dog_id)) {
           const current = resultsMap.get(r.dog_id);
           if (current && !current.origin_report_id) {
@@ -219,9 +205,6 @@ export class ReportsService {
     return data as DogIdentity;
   }
 
-  /**
-   * Obtiene la identidad de un perro por su ID en la tabla `dogs`.
-   */
   async getDogById(id: string): Promise<DogIdentity | null> {
     const { data, error } = await this.supabase
       .from('dogs')
@@ -232,20 +215,12 @@ export class ReportsService {
     return (data as DogIdentity) ?? null;
   }
 
-  /**
-   * Garantiza que el dogId referencie un registro real existente en `dogs`.
-   * Si el usuario seleccionó un perro proveniente de un reporte anterior cuyo dog_id era nulo,
-   * promueve ese reporte a una identidad oficial en la tabla `dogs` y actualiza el reporte origen.
-   */
   async resolveDogIdForReport(selectedDog: DogIdentity, userId: string): Promise<string> {
-    // 1. Verificar si el ID ya existe en la tabla dogs
     const existing = await this.getDogById(selectedDog.id);
     if (existing) {
       return existing.id;
     }
 
-    // 2. Si no existe en `dogs`, proviene de un dog_report histórico sin dog_id.
-    // Creamos la identidad oficial en `dogs` para satisfacer la FK constraint `dog_reports_dog_id_fkey`.
     const newDog = await this.createDog(
       {
         name: selectedDog.name,
@@ -256,19 +231,14 @@ export class ReportsService {
       userId,
     );
 
-    // 3. Si el ID del perro seleccionado era el ID de un reporte previo, vinculamos
-    // ese reporte anterior a la nueva identidad para mantener el historial unificado.
     try {
       await this.supabase.from('dog_reports').update({ dog_id: newDog.id }).eq('id', selectedDog.id);
     } catch {
-      // Si falla actualizar el reporte anterior (por ejemplo por permisos RLS),
-      // no abortamos, ya que la nueva identidad en `dogs` ya fue creada con éxito.
     }
 
     return newDog.id;
   }
 
-  /** Solo se usa para deshacer un perro creado si falla la publicación del reporte. */
   async deleteDog(id: string): Promise<void> {
     const { error } = await this.supabase.from('dogs').delete().eq('id', id);
     if (error) throw new Error(this.msg(error.message));
@@ -331,12 +301,10 @@ export class ReportsService {
         try {
           await this.storage.deletePhoto(photo.photo_path);
         } catch {
-          // la foto huérfana no es crítica
         }
       }
     }
 
-    // Se limpia antes para no chocar con el índice único de foto principal.
     const { error: clearError } = await this.supabase
       .from('dog_report_photos')
       .update({ is_primary: false })
@@ -372,7 +340,6 @@ export class ReportsService {
     try {
       photos = await this.listPhotos(report.id);
     } catch {
-      // Si la tabla de fotos aún no existe, se limpia solo la foto principal.
     }
     const { error } = await this.supabase.from('dog_reports').delete().eq('id', report.id);
     if (error) throw new Error(this.msg(error.message));
@@ -383,12 +350,10 @@ export class ReportsService {
       try {
         await this.storage.deletePhoto(path);
       } catch {
-        // la foto huérfana no es crítica
       }
     }
   }
 
-  /** Emite cada vez que cambia un reporte o un comentario (Supabase Realtime) */
   changes$(): Observable<void> {
     return new Observable<void>((subscriber) => {
       const channel = this.supabase
@@ -402,17 +367,11 @@ export class ReportsService {
     });
   }
 
-  /**
-   * Detecta fallos que solo afectan a datos opcionales (columna nueva, tabla de
-   * fotos o relación aún no migrada). En esos casos se reintenta con las
-   * columnas base para no dejar el mapa ni el feed vacíos.
-   */
   private isOptionalSchemaError(error: { code?: string; message: string }): boolean {
     if (error.code && OPTIONAL_SCHEMA_CODES.has(error.code)) return true;
     return /could not find the table|does not exist|schema cache|relationship/i.test(error.message);
   }
 
-  /** Supabase devuelve la relación como `dog_report_photos`; la UI consume `photos`. */
   private withPhotos(reports: DogReport[]): DogReport[] {
     return reports.map((report) => {
       const row = report as DogReport & { dog_report_photos?: ReportPhoto[] | null };

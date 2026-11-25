@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Capacitor } from '@capacitor/core';
 import { Geolocation } from '@capacitor/geolocation';
+
 import { HardwareError } from '../utils/hardware-error';
 
 export interface GpsFix {

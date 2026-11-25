@@ -3,7 +3,6 @@ export interface Breed {
   name: string;
 }
 
-/** Respuesta cruda de Dog API v2 */
 export interface DogApiBreedItem {
   id: string;
   type: string;

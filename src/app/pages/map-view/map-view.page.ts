@@ -87,14 +87,14 @@ import { CityMapComponent } from '../../shared/components/city-map/city-map.comp
         (selectReport)="onReportSelected($event)"
       />
 
-      <!-- Botón para recentrar en ubicación actual -->
+      
       <ion-fab slot="fixed" vertical="bottom" horizontal="end" class="fab-locate">
         <ion-fab-button color="light" (click)="locateMe()">
           <ion-icon [icon]="locateOutline"></ion-icon>
         </ion-fab-button>
       </ion-fab>
 
-      <!-- Botón para reportar -->
+      
       <ion-fab slot="fixed" vertical="bottom" horizontal="start" class="fab-add">
         <ion-fab-button color="primary" (click)="goCreate()">
           <ion-icon [icon]="add"></ion-icon>
@@ -207,7 +207,6 @@ export class MapViewPage implements OnInit {
       this.userLat.set(fix.latitude);
       this.userLng.set(fix.longitude);
     } catch {
-      // Ignorar si no hay GPS disponible
     }
   }
 

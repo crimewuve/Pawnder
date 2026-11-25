@@ -1,18 +1,18 @@
--- =============================================================================
--- Migración: identidad explícita de perros + estado solo del autor
--- Proyecto: Pawnder (Ionic/Angular + Supabase)
--- Fecha: 2026-11-24
---
--- Ejecutar DESPUÉS de 20261123_social_features.sql.
--- Es idempotente: no borra tablas, columnas ni datos.
--- Los reportes antiguos quedan sin perro asignado (dog_id = NULL): nunca se
--- agrupan automáticamente por coordenadas, fotos ni texto.
--- =============================================================================
 
 
--- -----------------------------------------------------------------------------
--- 1) Entidad explícita "dogs"
--- -----------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
 CREATE TABLE IF NOT EXISTS public.dogs (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name text,
@@ -31,10 +31,10 @@ CREATE INDEX IF NOT EXISTS dogs_name_idx ON public.dogs (lower(name));
 CREATE INDEX IF NOT EXISTS dogs_breed_idx ON public.dogs (lower(breed));
 
 
--- -----------------------------------------------------------------------------
--- 2) Relación opcional de cada reporte con un perro conocido
---    un perro puede tener muchos reportes independientes de autores distintos.
--- -----------------------------------------------------------------------------
+
+
+
+
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -69,9 +69,9 @@ END $$;
 CREATE INDEX IF NOT EXISTS dog_reports_dog_id_idx ON public.dog_reports (dog_id);
 
 
--- -----------------------------------------------------------------------------
--- 3) RLS de dogs: lectura pública, escritura solo del creador
--- -----------------------------------------------------------------------------
+
+
+
 ALTER TABLE public.dogs ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "dogs_select_public" ON public.dogs;
@@ -99,7 +99,7 @@ CREATE POLICY "dogs_delete_own"
   TO authenticated
   USING (created_by = auth.uid());
 
--- Salvaguardas: aunque aparezca otra política permisiva, nadie escribe perros ajenos.
+
 DROP POLICY IF EXISTS "dogs_insert_owner_guard" ON public.dogs;
 CREATE POLICY "dogs_insert_owner_guard"
   ON public.dogs AS RESTRICTIVE FOR INSERT
@@ -120,10 +120,10 @@ CREATE POLICY "dogs_delete_owner_guard"
   USING (created_by = auth.uid());
 
 
--- -----------------------------------------------------------------------------
--- 4) report_status: solo el autor del reporte puede cambiarlo
---    (además de las políticas restrictivas de UPDATE ya existentes).
--- -----------------------------------------------------------------------------
+
+
+
+
 CREATE OR REPLACE FUNCTION public.dog_reports_status_owner_guard()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -150,9 +150,9 @@ CREATE TRIGGER dog_reports_status_owner_guard
   EXECUTE FUNCTION public.dog_reports_status_owner_guard();
 
 
--- -----------------------------------------------------------------------------
--- 5) Realtime: publicar dogs para que el mapa reaccione a nuevas identidades
--- -----------------------------------------------------------------------------
+
+
+
 DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime')
@@ -169,4 +169,4 @@ BEGIN
 END $$;
 
 
--- Fin de la migración.
+

@@ -1,13 +1,13 @@
--- =============================================================================
--- Migración: Relación explícita con la alerta original (parent_report_id)
--- Proyecto: Pawnder (Ionic/Angular + Supabase)
--- Fecha: 2026-11-25
---
--- Añade la columna opcional `parent_report_id` a la tabla `public.dog_reports`
--- para distinguir alertas iniciales (raíces) de publicaciones posteriores (seguimientos).
--- Las alertas originales tienen `parent_report_id IS NULL`.
--- Las publicaciones de actualización/seguimiento tienen `parent_report_id = <id de la alerta original>`.
--- =============================================================================
+
+
+
+
+
+
+
+
+
+
 
 DO $$
 BEGIN

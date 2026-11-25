@@ -61,7 +61,7 @@ describe('groupReportsByDog', () => {
     ]);
 
     expect(groups).toHaveLength(2);
-    // La alerta original ALERT-001 agrupa a sus 3 publicaciones y NO crea marcadores extra
+    
     const alert1 = groups.find((g) => g.alertId === 'ALERT-001');
     expect(alert1).toBeDefined();
     expect(alert1?.reports).toHaveLength(3);

@@ -1,7 +1,9 @@
-import {
-  AfterViewInit, Component, ElementRef, OnDestroy, effect, inject, input, output, viewChild,
+import type {
+  AfterViewInit, ElementRef, OnDestroy} from '@angular/core';
+import { Component, effect, inject, input, output, viewChild,
 } from '@angular/core';
 import * as L from 'leaflet';
+
 import { MapService } from '../../../core/services/map.service';
 
 @Component({

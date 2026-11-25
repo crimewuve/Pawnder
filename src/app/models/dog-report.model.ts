@@ -12,7 +12,7 @@ export interface ReportPhoto {
   is_primary: boolean;
 }
 
-/** Identidad explícita de un perro. Nunca se infiere de fotos, GPS ni texto. */
+
 export interface DogIdentity {
   id: string;
   name: string | null;
@@ -20,7 +20,7 @@ export interface DogIdentity {
   size: DogSize | null;
   photo_url: string | null;
   created_at: string;
-  /** Si este perro fue seleccionado desde una alerta existente, guarda el ID de la alerta original */
+  
   origin_report_id?: string | null;
 }
 
@@ -59,12 +59,12 @@ export interface DogReport {
   report_status: ReportStatus;
   created_at: string;
   updated_at: string;
-  // Notas de UI/legacy: NO existen en public.dog_reports y nunca se envían a Supabase.
-  // La urgencia se deriva de urgency_level !== 'normal' y la privacidad se aplica
-  // difuminando las coordenadas antes de guardar el reporte.
+  
+  
+  
   is_approximate_location?: boolean;
   is_emergency?: boolean;
-  // Relaciones que trae Supabase en las consultas con "select"
+  
   profiles?: { display_name: string; avatar_url?: string | null } | null;
   dogs?: DogIdentity | null;
   report_comments?: { count: number }[];
@@ -98,7 +98,7 @@ export type ReportPatch = Partial<
   >
 >;
 
-/** Datos que el formulario envía al crear un reporte (user_id lo pone el servicio) */
+
 export type NewDogReport = Omit<
   DogReport,
   | 'id'

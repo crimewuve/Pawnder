@@ -1,8 +1,10 @@
 import { Injectable, inject } from '@angular/core';
+import type { Photo } from '@capacitor/camera';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
-import { Camera, CameraResultType, CameraSource, Photo } from '@capacitor/camera';
 import { Filesystem } from '@capacitor/filesystem';
 import { ModalController } from '@ionic/angular';
+
 import { CameraCaptureComponent } from '../../shared/components/camera-capture/camera-capture.component';
 import { HardwareError } from '../utils/hardware-error';
 
@@ -19,7 +21,7 @@ const DENIED_MSG =
 export class CameraService {
   private readonly modalCtrl = inject(ModalController);
 
-  /** Cámara integrada en la app (vista previa dentro de un modal) */
+  
   async takePhoto(): Promise<CapturedPhoto> {
     await this.ensurePermission();
 
@@ -35,7 +37,7 @@ export class CameraService {
     throw new HardwareError('cancelled', 'Captura cancelada.');
   }
 
-  /** Selector de fotos del teléfono (Capacitor Camera) */
+  
   pickFromGallery(): Promise<CapturedPhoto> {
     return this.fromPlugin(CameraSource.Photos);
   }
@@ -50,7 +52,7 @@ export class CameraService {
         correctOrientation: true,
         resultType: CameraResultType.Uri,
         source,
-        webUseInput: true, // solo afecta al navegador
+        webUseInput: true, 
       });
     } catch (e) {
       throw this.mapError(e);
@@ -85,7 +87,7 @@ export class CameraService {
         }
         return file.data;
       } catch {
-        // si falla, se intenta con fetch
+        
       }
     }
     const response = await fetch(photo.webPath as string);

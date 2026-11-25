@@ -3,7 +3,7 @@ import { AlertController, ToastController } from '@ionic/angular';
 
 type ToastColor = 'success' | 'danger' | 'warning' | 'medium';
 
-/** Mensajes, alertas y confirmaciones reutilizables en toda la app */
+
 @Injectable({ providedIn: 'root' })
 export class UiService {
   private readonly toastCtrl = inject(ToastController);
@@ -30,7 +30,7 @@ export class UiService {
     await alert.onDidDismiss();
   }
 
-  /** Devuelve true si el usuario confirma */
+  
   async confirm(header: string, message: string, confirmText = 'Aceptar'): Promise<boolean> {
     const alert = await this.alertCtrl.create({
       header,

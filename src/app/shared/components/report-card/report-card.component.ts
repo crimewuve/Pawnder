@@ -35,17 +35,17 @@ import { WeatherIndicatorComponent } from '../weather-indicator/weather-indicato
       [button]="true"
       (click)="open.emit(report().id)"
     >
-      <!-- Top Frame / Photography -->
+      
       <div class="photo-wrapper">
         <app-photo-carousel [photos]="photoUrls()" [alt]="report().title" />
 
-        <!-- Pawnder ID Tag -->
+        
         <div class="pawn-tag">
           <ion-icon [icon]="pawOutline"></ion-icon>
           <span>{{ pawnId() }}</span>
         </div>
 
-        <!-- Emergency or Community Badge -->
+        
         @if (report().urgency_level !== 'normal') {
           <div class="pill-badge pill-alert" [class.alert-crit]="report().urgency_level === 'critica'">
             <ion-icon [icon]="alertCircle"></ion-icon>
@@ -58,19 +58,19 @@ import { WeatherIndicatorComponent } from '../weather-indicator/weather-indicato
           </div>
         }
 
-        <!-- Status Tag (Top Right) -->
+        
         <div class="status-pill status-{{ report().report_status }}">
           {{ statusLabel() }}
         </div>
       </div>
 
-      <!-- Card Body: Pawnder Stats & Metadata -->
+      
       <ion-card-content class="card-body">
         <div class="headline-row">
           <h2 class="title">{{ report().title }}</h2>
         </div>
 
-        <!-- Breed and Size Pills -->
+        
         <div class="stats-pills">
           <span class="stat-chip breed-chip">
             <b>{{ report().breed }}</b>
@@ -87,7 +87,7 @@ import { WeatherIndicatorComponent } from '../weather-indicator/weather-indicato
 
         <p class="description">{{ report().description }}</p>
 
-        <!-- Location & Time Info -->
+        
         <div class="meta-row">
           <div class="meta-item">
             <ion-icon [icon]="locationOutline"></ion-icon>
@@ -102,12 +102,12 @@ import { WeatherIndicatorComponent } from '../weather-indicator/weather-indicato
           </div>
         </div>
 
-        <!-- Weather summary indicator -->
+        
         <div class="weather-row">
           <app-weather-indicator [emoji]="report().weather_emoji" [summary]="weather()" />
         </div>
 
-        <!-- Footer: Social author & comments -->
+        
         <div class="card-footer">
           <button
             type="button"
@@ -182,7 +182,6 @@ import { WeatherIndicatorComponent } from '../weather-indicator/weather-indicato
         filter: grayscale(0.2);
       }
 
-      /* Photo area */
       .photo-wrapper {
         position: relative;
         width: 100%;
@@ -271,7 +270,6 @@ import { WeatherIndicatorComponent } from '../weather-indicator/weather-indicato
         color: #ffffff;
       }
 
-      /* Body */
       .card-body {
         padding: 16px 18px;
       }
@@ -353,7 +351,6 @@ import { WeatherIndicatorComponent } from '../weather-indicator/weather-indicato
         margin-bottom: 12px;
       }
 
-      /* Card Footer */
       .card-footer {
         display: flex;
         justify-content: space-between;
@@ -444,7 +441,6 @@ import { WeatherIndicatorComponent } from '../weather-indicator/weather-indicato
         }
       }
 
-      /* Photo Viewport */
       .photo-wrapper {
         position: relative;
         height: 220px;
@@ -462,7 +458,6 @@ import { WeatherIndicatorComponent } from '../weather-indicator/weather-indicato
         transform: scale(1.03);
       }
 
-      /* Pawnder ID Badge */
       .pawn-tag {
         position: absolute;
         bottom: 12px;
@@ -486,7 +481,6 @@ import { WeatherIndicatorComponent } from '../weather-indicator/weather-indicato
         font-size: 13px;
       }
 
-      /* Badges */
       .pill-badge {
         position: absolute;
         top: 12px;
@@ -547,7 +541,6 @@ import { WeatherIndicatorComponent } from '../weather-indicator/weather-indicato
         background: #6b7280;
       }
 
-      /* Card Content */
       .card-body {
         padding: 16px 18px;
       }
@@ -559,7 +552,6 @@ import { WeatherIndicatorComponent } from '../weather-indicator/weather-indicato
         line-height: 1.25;
       }
 
-      /* Stat Pills (Breed, Size, Category) */
       .stats-pills {
         display: flex;
         flex-wrap: wrap;
@@ -625,7 +617,6 @@ import { WeatherIndicatorComponent } from '../weather-indicator/weather-indicato
         margin-bottom: 12px;
       }
 
-      /* Footer */
       .card-footer {
         display: flex;
         justify-content: space-between;

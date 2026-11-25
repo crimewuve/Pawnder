@@ -1,6 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
 
-/** Convierte un error HTTP en un mensaje claro para mostrarle al usuario */
 export function describeHttpError(error: unknown, service: string): string {
   if (error instanceof HttpErrorResponse) {
     if (error.status === 0) {

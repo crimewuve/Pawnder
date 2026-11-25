@@ -249,7 +249,7 @@ export class CityMapComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     const initialCenter: L.LatLngExpression = [
-      this.userLat() ?? 4.711, // Bogotá por defecto
+      this.userLat() ?? 4.711, 
       this.userLng() ?? -74.0721,
     ];
 
@@ -284,7 +284,7 @@ export class CityMapComponent implements AfterViewInit, OnDestroy {
     );
 
     for (const group of groups) {
-      // La ubicación de referencia en el mapa es la de la alerta original
+      
       const representative = group.initial.latitude && group.initial.longitude ? group.initial : group.latest;
       if (!representative.latitude || !representative.longitude) continue;
 
@@ -338,7 +338,7 @@ export class CityMapComponent implements AfterViewInit, OnDestroy {
 
   private popupHtml(group: ReportGroup): string {
     const { initial, reports, dogId } = group;
-    // El encabezado es SIEMPRE el título real de la publicación original.
+    
     const title = initial.title?.trim() || 'Publicación sin título';
     const dog = initial.dogs;
     const dogName = dog?.name?.trim();

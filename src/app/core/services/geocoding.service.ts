@@ -1,6 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, catchError, map, of } from 'rxjs';
+import type { Observable} from 'rxjs';
+import { catchError, map, of } from 'rxjs';
 
 export interface GeocodeResult {
   displayName: string;
@@ -41,7 +42,7 @@ export class GeocodingService {
           zone,
         };
       }),
-      // Es información de ayuda: si falla, el usuario escribe el sector a mano
+      
       catchError(() => of(null))
     );
   }
